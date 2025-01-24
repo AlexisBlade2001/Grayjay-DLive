@@ -6,7 +6,7 @@
 
   "platformUrl": "https://dlive.tv",
   "sourceUrl": "./DLiveConfig.json",
-  "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-Plugins/DLive",
+  "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
   "version": 1,
 

@@ -7,6 +7,8 @@ There's a lot of things to fix and implement, more importantly let the plugin fe
 Licensing? I don't know how they work, I'm not going to use the wrong one so this is being uploaded without one, pretty sure I have to fix it
 
 Also the whole thing was made when Grayjay was releasing, I just forgot to upload
+
+Edit: There's a Reward system on DLive that comes in a chest, this chest gives lemons (the equivalent of Twitch's Bits system) and every user has one that fills with chat interaction, and the streamer can reward them when they decide to open it... thing is, as a spectator, that chest can only be claimed from their app or the desktop version of their website. I don't think this can be solved through the Webview. Also I need to figure out how to sign the plugin... this also requires a website to host it... should look into it
 ## Functionality
  - [x] Home
    - [x] Live Homepage
