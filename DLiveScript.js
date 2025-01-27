@@ -18,6 +18,13 @@ const URL_SUBSCRIPTIONS = `${URL_BASE}/s/mysubscriptions`;
 
 const PLATFORM = "DLive";
 
+const REGEX_USER = /dlive\.tv\/[a-zA-Z0-9-_]+\/?/;
+const REGEX_USER_OLD = /dlive\.tv\/[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/;
+const REGEX_CHANNEL_USER = /dlive\.tv\/u\/[a-zA-Z0-9-_]+\/?/;
+const REGEX_CHANNEL_USER_OLD = /dlive\.tv\/u\/[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/;
+const REGEX_VOD = /dlive\.tv\/p\[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/;
+const REGEX_VIDEO = /dlive\.tv\/v\[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/;
+
 var config = {};
 
 source.enable = function (conf, settings, savedState) {
@@ -44,7 +51,7 @@ source.getUserSubscriptions = function () {
         operationName: "MeFollowingLivestreams",
         variables: {
             first: 20, // 20 is the default
-            after: null
+            after: null // "-1" is the proper initial value
         }
     };
     // We need to paginate this
@@ -66,23 +73,69 @@ source.getUserSubscriptions = function () {
         operationName: "MeSubscribing",
         variables: {
             first: 20, // 20 is the default
-            after: null
+            after: null // "-1" is the proper initial value
         }
     };
     const resultsSubscribing = callGQL(MeSubscribing);
     return resultsSubscribing.me.private.subscribing.list.map((u) => `${URL_CHANNEL}/${u.displayname}`);
 }
 
-source.getHome = function () {
+source.getHome = function (continuationToken) {
     /**
+     * @AlexisBlade2001: GQL query seems to be broken, I think we have to extract it from the website instead
+     * for now, we'll handle this with the query operation... unless it looks broken because of not having a
+     * language variable set, if that's the case, I'm dumb for not noticing it
+     * @param continuationToken: any?
      * @returns: VideoPager
      */
 
-    const videos = getHomeResults(); // The results (PlatformVideo)
-    const hasMore = false; // Are there more pages?
-    // const context = { pageSize: 20 }; // Relevant data for the next page
-    return new DLiveHomeVideoPager(videos, hasMore);
-    //return new DLiveHomeVideoPager(videos, hasMore, context);
+    let gql = {
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "4c51ad0b46e3a3b4b0d6abf87445567122ee85d9b257ecbf8eb1cbe4a45aac8e"
+            }
+        },
+        operationName: "HomePageLivestream",
+        variables: {
+            first: 20, // 20 is the default
+            after: continuationToken ?? null, // "-1" is the proper initial value, When i was looking in the website, this almost never matched the value it was supposed to be
+            languageID: null, // From GlobalInformation's query - filters homepage with language
+            categoryID: null, // ¿? - Filters homepage with category
+            order: "TRENDING", // I don't know where the filters are
+            showNSFW: false, // This is called X-Tag in the web/app
+            showMatureContent: false, // This is called Mature Tag in the web/app - I don't get the differences between this and X-Tags
+            userLanguageCode: null // Doesn't seem to affect search, string format is "en", not "es-CL", check GlobalInformation
+        }
+    };
+
+    const results = callGQL(gql);
+
+    // The results (PlatformVideo)
+    const videos = results.data.livestreams.list.map(video =>
+        new PlatformVideo({
+            id: new PlatformID(PLATFORM, video.id, plugin.config.id),
+            name: video.title,
+            thumbnails: new Thumbnails([new Thumbnail(video.thumbnailUrl)]),
+            author: new PlatformAuthorLink(
+                new PlatformID(PLATFORM, video.creator.id, config.id),
+                video.creator.displayname,
+                `${URL_BASE}/${video.creator.displayname}`,
+                video.creator.avatar
+                // video.creator.followers.totalCount
+            ),
+            uploadDate: parseInt(new Date().getTime() / 1000),
+            shareUrl: `${URL_BASE}/${video.creator.displayname}`,
+            duration: 0,
+            viewCount: video.watchingCount,
+            url: `${URL_BASE}/${video.creator.displayname}`,
+            isLive: true,
+        })
+    );
+    const hasMore = /** data.livestreams.pageInfo.endCursor.hasNextPage ?? */ false; // Are there more pages?
+    const context = { continuationToken: results.data.livestreams.pageInfo.endCursor.endCursor }; // Relevant data for the next page
+
+    return new DLiveHomeVideoPager(videos, hasMore, context);
 }
 
 source.searchSuggestions = function (query) {
@@ -91,10 +144,7 @@ source.searchSuggestions = function (query) {
      * @returns: string[]
      */
 
-    // It doesn't seem to make suggestions while searching
-
-    const suggestions = []; //The suggestions for a specific search query
-    return suggestions;
+    return [];
 }
 
 source.getSearchCapabilities = function () {
@@ -122,36 +172,33 @@ source.getSearchCapabilities = function () {
     };
 }
 
-source.search = function (query, type, order, filters, continuationToken) {
+source.search = function (query, type, order, filters) {
     return new ContentPager([], false);
     /**
      * @param query: string
      * @param type: string
      * @param order: string
      * @param filters: Map<string, Array<string>>
-     * @param continuationToken: any?
      * @returns: VideoPager
      */
 
     const videos = []; // The results (PlatformVideo)
     const hasMore = false; // Are there more pages?
-    const context = { query: query, type: type, order: order, filters: filters, continuationToken: continuationToken }; // Relevant data for the next page
+    const context = { query: query, type: type, order: order, filters: filters }; // Relevant data for the next page
+    
     return new SomeSearchVideoPager(videos, hasMore, context);
 }
 
 source.getSearchChannelContentsCapabilities = function () {
-    //This is an example of how to return search capabilities on a channel like available sorts, filters and which feed types are available (see source.js for more details)
     return {
         types: [Type.Feed.Mixed],
-        sorts: [Type.Order.Chronological]
-        /** I'll try implementing them later
+        sorts: [Type.Order.Chronological],
         filters: []
-         */
     };
 }
 
 source.searchChannelContents = function (url, query, type, order, filters, continuationToken) {
-    throw new ScriptException("This is a sample");
+    throw new ScriptImplementationException("Content Searching on Channel not yet implemented");
     /**
      * @param url: string
      * @param query: string
@@ -165,18 +212,49 @@ source.searchChannelContents = function (url, query, type, order, filters, conti
     const videos = []; // The results (PlatformVideo)
     const hasMore = false; // Are there more pages?
     const context = { channelUrl: channelUrl, query: query, type: type, order: order, filters: filters, continuationToken: continuationToken }; // Relevant data for the next page
+    
     return new SomeSearchChannelVideoPager(videos, hasMore, context);
 }
 
 source.searchChannels = function (query, continuationToken) {
     /**
      * @param query: string
+     * @param continuationToken: any?
      * @returns: ChannelPager
      */
 
-    const channels = getSearchChannelsResults(query); // The results (PlatformChannel)
+    let gql = {
+        operationName: "NavSearchResult",
+        variables: {
+	    	text: query,
+	    	userFirst: 8, // 8 is the default on DLive's website
+	    	userAfter: null, // "-1" is the proper default
+	    	categoryFirst: 0
+	    },
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "7e32812db61507392d4b6750bb6fc65cd2ec5cc3c89ffc46036296361f943d5d"
+            }
+        }
+    }
+
+    const results = callGQL(gql);
+
+    // The results (PlatformChannel)
+    const channels = results.data.search.allUsers.list.map(channel =>
+        new PlatformChannel({
+            id: new PlatformID(PLATFORM, channel.id ?? channel.creator.id, config.id),
+            name: channel.displayname ?? channel.creator.displayname,
+            thumbnail: channel.avatar ?? channel.creator.avatar,
+            subscribers: channel.followers?.totalCount ?? channel.creator?.followers?.totalCount ?? 0,
+            url: `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`,
+        })
+    );
     const hasMore = false; // Are there more pages?
-    return new DLiveChannelPager(channels, hasMore, query);
+    const context = { query: query, continuationToken: continuationToken }; // Relevant data for the next page
+
+    return new DLiveChannelPager(channels, hasMore, context);
 }
 
 //Channel
@@ -186,7 +264,7 @@ source.isChannelUrl = function (url) {
      * @returns: boolean
      */
 
-    return /dlive\.tv\/[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/u\/[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/u\/[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/.test(url);
+    return REGEX_USER.test(url) || REGEX_USER_OLD.test(url) || REGEX_CHANNEL_USER.test(url) || REGEX_CHANNEL_USER_OLD.test(url);
 }
 
 source.getChannel = function (url) {
@@ -224,7 +302,7 @@ source.getChannel = function (url) {
     });
 }
 
-source.getChannelContents = function (url) {
+source.getChannelContents = function(url, type, order, filters, continuationToken) {
     /**
      * @param url: string
      * @param type: string
@@ -238,13 +316,14 @@ source.getChannelContents = function (url) {
     const replays = getReplayChannelContent(url) || [];; // The results (PlatformVideo)
     const videos = getVideoChannelContent(url) || [];; // The results (PlatformVideo)
 
-    /** It should be a Individual Pager for their own type of content
-     * except for the livestream content... thing is, i dont understand how to pass their  
+    /**
+     * It should be a Individual Pager for their own type of content
+     * except for the livestream content... thing is, i dont understand how to pass those  
      */
 
     const results = [...live, ...replays, ...videos];
-
     const hasMore = false; // Are there more pages?
+
     return new DLiveChannelVideoPager(results, hasMore);
 }
 
@@ -254,7 +333,7 @@ source.isContentDetailsUrl = function (url) {
      * @returns: boolean
      */
 
-    return /dlive\.tv\/[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/v\[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/.test(url) || /dlive\.tv\/p\[a-zA-Z0-9-_]+\+[a-zA-Z0-9-_]+\/?/.test(url);
+    return REGEX_USER.test(url) || REGEX_USER_OLD.test(url) || REGEX_VIDEO.test(url) || REGEX_VOD.test(url);
 }
 
 source.getContentDetails = function (url) {
@@ -274,27 +353,65 @@ source.getContentDetails = function (url) {
     }
 }
 
-source.getComments = function (url) {
-    throw new ScriptException("This is a sample");
+source.getComments = function (url, continuationToken) {
     /**
      * @param url: string
      * @param continuationToken: any?
      * @returns: CommentPager
      */
 
-    const comments = []; // The results (Comment)
-    if (url.includes('/v/')) {
-        return getVideoComments(url);
-    } else if (url.includes('/p/')) {
-        return getReplayComments(url);
+    // Verify Content URL
+    if (!url.includes('/v/') && !url.includes('/p/')) {
+        return new DLiveCommentPager([], false, {});
     }
-    const hasMore = false; // Are there more pages?
-    const context = { url: url, }; // Relevant data for the next page
-    return new SomeCommentPager(comments, hasMore, context);
 
+    let gql = {
+        operationName: "ReplyComments",
+        variables: {
+            permlink: url.split('/').pop(),
+            first: 20, // 20 is the default
+            after: continuationToken ?? null
+        },
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "b77aa980fe22c7fe3dbb71cc0131eb077fab62dc2c5d0d74b1f9a07a766c1243"
+            }
+        },
+        query: "query ReplyComments($permlink: String!, $first: Int, $after: String) {\n  comments(permlink: $permlink, first: $first, after: $after) {\n    ...VVideoPBCommentFrag\n    __typename\n  }\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n"
+    }
+
+    const results = callGQL(gql);
+
+    if (!Array.isArray(results.data.comments.list)) {
+        return new DLiveCommentPager([], false, {});
+    }
+
+    // The results (Comment)
+    const comments = results.data.comments.list.map(comment => new PlatformComment({
+        /** I don't know how both context and contextUrl works, i'll just let it be */
+        // contextUrl: ,
+        author: new PlatformAuthorLink(
+            new PlatformID(PLATFORM, `user:${comment.permlink.split('+')[0]}`, plugin.config.id),
+            comment.author.displayname,
+            `${URL_CHANNEL}/${comment.author.displayname}`,
+            comment.author.avatar
+        ),
+        message: comment.content,
+        rating: new RatingLikesDislikes(comment.upvotes, comment.downvotes),
+        date: parseInt(comment.createdAt, 10) / 1000,
+        replyCount: comment.commentCount,
+        // context: {  }
+    }));
+    
+    const hasMore = results.data.comments.pageInfo.hasNextPage ?? false // Are there more pages?
+    const context = { url: url, continuationToken: results.data.comments.pageInfo.endCursor }; // Relevant data for the next page
+    
+    return new DLiveCommentPager(comments, hasMore, context);
 }
+
 source.getSubComments = function (comment) {
-    throw new ScriptException("This is a sample");
+    throw new ScriptImplementationException("Subcomments not yet implemented")
     /**
      * @param comment: Comment
      * @returns: DLiveCommentPager
@@ -333,20 +450,13 @@ class DLiveCommentPager extends CommentPager {
 }
 
 class DLiveHomeVideoPager extends VideoPager {
-    // constructor(results, hasMore, context) {
-    //     super(results, hasMore, context);
-    // }
-    constructor(results, hasMore) {
-        super(results, hasMore);
-        this.page = 0;
-    }
-
-    nextPage() {
-        this.page++;
-        this.results = getHomeResults(this.page);
-        this.hasMore = true;
-        return this;
-    }
+	constructor(results, hasMore, context) {
+		super(results, hasMore, context);
+	}
+	
+	nextPage() {
+		return source.getHome(this.context.continuationToken);
+	}
 }
 
 class SomeSearchVideoPager extends VideoPager {
@@ -355,7 +465,7 @@ class SomeSearchVideoPager extends VideoPager {
     }
 
     nextPage() {
-        return source.search(this.context.query, this.context.type, this.context.order, this.context.filters, this.context.continuationToken);
+        return source.search(this.context.query, this.context.type, this.context.order, this.context.filters);
     }
 }
 
@@ -365,116 +475,28 @@ class SomeSearchChannelVideoPager extends VideoPager {
     }
 
     nextPage() {
-        return source.searchChannelContents(this.context.channelUrl, this.context.query, this.context.type, this.context.order, this.context.filters, this.context.continuationToken);
+        return source.searchChannelContents(this.context.channelUrl, this.context.query, this.context.type, this.context.order, this.context.filters);
     }
 }
 
 class DLiveChannelPager extends ChannelPager {
-    constructor(results, hasMore, query) {
-        super(results, hasMore, query);
-        this.page = 0;
-    }
-
-    nextPage() {
-        this.page++;
-        this.results = getSearchChannelsResults(query, this.page);
-        this.hasMore = false;
-        return this;
-    }
+	constructor(results, hasMore, context) {
+		super(results, hasMore, context);
+	}
+	
+	nextPage() {
+		return source.searchChannels(this.context.query, this.context.continuationToken);
+	}
 }
 
 class DLiveChannelVideoPager extends VideoPager {
-    constructor(results, hasMore) {
-        super(results, hasMore);
-        this.page = 0;
-    }
-
-    nextPage() {
-        return source.getChannelContents(this.context.url);
-    }
-}
-
-//* Pagers
-/**
- * Gets a pager for the home pager
- * @returns {DLiveHomeVideoPager}
-
- */
-function getHomeResults() {
-    let gql = {
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "4c51ad0b46e3a3b4b0d6abf87445567122ee85d9b257ecbf8eb1cbe4a45aac8e"
-            }
-        },
-        operationName: "HomePageLivestream",
-        variables: {
-            first: 20, // 20 is the default
-            after: null, // When i was looking in the website, this almost never matched the value it was supposed to be 
-            languageID: null, // From GlobalInformation's query - filters homepage with language
-            categoryID: null, // ¿? - Filters homepage with category
-            order: "TRENDING", // I don't know where the filters are
-            showNSFW: false, // This is called X-Tag in the web/app
-            showMatureContent: false, // This is called Mature Tag in the web/app - I don't get the differences between this and X-Tags
-            userLanguageCode: null // Doesn't seem to affect search, string format is "en", not "es-CL", check GlobalInformation
-        }
-    };
-
-    const results = callGQL(gql);
-
-    const streams = results.data.livestreams.list.map(metadata =>
-        new PlatformVideo({
-            id: new PlatformID(PLATFORM, metadata.id, config.id),
-            name: metadata.title,
-            thumbnails: new Thumbnails([new Thumbnail(metadata.thumbnailUrl)]),
-            author: new PlatformAuthorLink(
-                new PlatformID(PLATFORM, metadata.creator.id, config.id),
-                metadata.creator.displayname,
-                `${URL_BASE}/${metadata.creator.displayname}`,
-                metadata.creator.avatar,
-                // metadata.creator.followers.totalCount
-            ),
-            uploadDate: parseInt(new Date().getTime() / 1000),
-            shareUrl: `${URL_BASE}/${metadata.creator.displayname}`,
-            duration: 0,
-            viewCount: metadata.watchingCount,
-            url: `${URL_BASE}/${metadata.creator.displayname}`,
-            isLive: true,
-        })
-    );
-
-    return streams;
-}
-
-function getSearchChannelsResults(query) {
-    let gql = {
-        operationName: "NavSearchResult",
-        variables: {
-            text: query
-        },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "7e32812db61507392d4b6750bb6fc65cd2ec5cc3c89ffc46036296361f943d5d"
-            }
-        }
-    }
-    // if (context.cursor) gql.variables.cursor = context.cursor
-
-    const results = callGQL(gql);
-
-    const channels = results.data.search.allUsers.list.map(channel =>
-        new PlatformChannel({
-            id: new PlatformID(PLATFORM, channel.id ?? channel.creator.id, config.id),
-            name: channel.displayname ?? channel.creator.displayname,
-            thumbnail: channel.avatar ?? channel.creator.avatar,
-            subscribers: channel.followers?.totalCount ?? channel.creator?.followers?.totalCount ?? 0,
-            url: `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`,
-        })
-    );
-
-    return channels;
+	constructor(results, hasMore, context) {
+		super(results, hasMore, context);
+	}
+	
+	nextPage() {
+		return source.getChannelContents(this.context.url, this.context.type, this.context.order, this.context.filters, this.context.continuationToken);
+	}
 }
 
 function getLiveChannelContent(url) {
@@ -538,9 +560,6 @@ function getReplayChannelContent(url) {
         }
     }
 
-
-    // if (context.cursor) gql.variables.cursor = context.cursor
-
     const results = callGQL(gql);
 
     if (!results.data.userByDisplayName.pastBroadcastsV2.list) {
@@ -583,8 +602,6 @@ function getVideoChannelContent(url) {
             }
         }
     };
-
-    // if (context.cursor) gql.variables.cursor = context.cursor
 
     const results = callGQL(gql);
 
@@ -661,10 +678,8 @@ function getReplayDetails(url) {
     let gql = {
         operationName: "PastBroadcastPage",
         variables: {
-            permlink: url.split('/').pop(), // Required
-            commentsFirst: null, // Int
-            commentsAfter: null, // String
-            isLoggedIn: false // Required
+            permlink: url.split('/').pop(), // Extracting from the url
+            isLoggedIn: false // self-explanatory
         },
         extensions: {
             persistedQuery: {
@@ -705,8 +720,6 @@ function getVideoDetails(url) {
         operationName: "VideoPage",
         variables: {
             permlink: url.split('/').pop(),
-            // commentsFirst: 20,
-            // commentsAfter: "0",
             isLoggedIn: false
         },
         extensions: {
@@ -715,6 +728,7 @@ function getVideoDetails(url) {
                 sha256Hash: "a437ab1221ff46c180c60529efee5881820feb7b5fb744b0341e4412453777f2"
             }
         },
+        query: "query VideoPage($permlink: String!, $commentsFirst: Int, $topContributionsFirst: Int, $commentsAfter: String, $topContributionsAfter: String, $isLoggedIn: Boolean!) {\n  video(permlink: $permlink) {\n    ageRestriction\n    creator {\n      id\n      displayname\n      donateDisabled\n      subscribeDisabled\n      __typename\n    }\n    createdAt\n    content\n    thumbnailUrl\n    resolution {\n      resolution\n      url\n      __typename\n    }\n    upNext {\n      list {\n        ...VVideoPBUpNextItemFrag\n        __typename\n      }\n      __typename\n    }\n    comments(first: $commentsFirst, after: $commentsAfter) {\n      ...VVideoPBCommentFrag\n      __typename\n    }\n    topContributions(first: $topContributionsFirst, after: $topContributionsAfter) {\n      ...VVideoPBUpNextTopContributorFrag\n      __typename\n    }\n    ...VideoPBHeaderFrag\n    ...VVideoPBInfoFrag\n    tags\n    __typename\n  }\n}\n\nfragment VVideoPBInfoFrag on VideoPB {\n  category {\n    title\n    imgUrl\n    id\n    __typename\n  }\n  language {\n    id\n    language\n    __typename\n  }\n  content\n  permlink\n  title\n  createdAt\n  creator {\n    id\n    displayname\n    __typename\n  }\n  ...VDonationGiftFrag\n  __typename\n}\n\nfragment VDonationGiftFrag on Post {\n  permlink\n  category {\n    id\n    title\n    __typename\n  }\n  language {\n    id\n    language\n    __typename\n  }\n  creator {\n    id\n    username\n    __typename\n  }\n  __typename\n}\n\nfragment VideoPBHeaderFrag on VideoPB {\n  totalReward\n  viewCount\n  creator {\n    id\n    username\n    displayname\n    about\n    followers {\n      totalCount\n      __typename\n    }\n    ...VDliveAvatarFrag\n    ...VDliveNameFrag\n    ...VFollowFrag\n    ...VSubscriptionFrag\n    __typename\n  }\n  ...VPostInfoShareFrag\n  __typename\n}\n\nfragment VDliveAvatarFrag on User {\n  id\n  avatar\n  effect\n  __typename\n}\n\nfragment VDliveNameFrag on User {\n  id\n  displayname\n  partnerStatus\n  __typename\n}\n\nfragment VFollowFrag on User {\n  id\n  username\n  displayname\n  isFollowing @include(if: $isLoggedIn)\n  isMe @include(if: $isLoggedIn)\n  followers {\n    totalCount\n    __typename\n  }\n  __typename\n}\n\nfragment VSubscriptionFrag on User {\n  id\n  username\n  displayname\n  lastStreamedAt\n  mySubscription @include(if: $isLoggedIn) {\n    isSubscribing\n    nextBillingAt\n    lemonSub\n    subType\n    subscribedAt\n    subStreak\n    lastBilledDate\n    status\n    month\n    subStreakStartedAt\n    __typename\n  }\n  isSubscribing @include(if: $isLoggedIn)\n  ...EmojiFrag\n  canSubscribe\n  isMe @include(if: $isLoggedIn)\n  subSetting {\n    badgeColor\n    badgeText\n    textColor\n    streakTextColor\n    benefits\n    backgroundImage\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiFrag on User {\n  id\n  emoji {\n    ...EmojiGlobalFrag\n    ...EmojiVipFrag\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiGlobalFrag on AllEmojis {\n  global {\n    totalCount\n    list {\n      name\n      username\n      sourceURL\n      mimeType\n      level\n      type\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiVipFrag on AllEmojis {\n  vip {\n    totalCount\n    list {\n      name\n      username\n      sourceURL\n      mimeType\n      level\n      type\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment VPostInfoShareFrag on Post {\n  permlink\n  title\n  content\n  category {\n    id\n    backendID\n    title\n    __typename\n  }\n  creator {\n    id\n    username\n    displayname\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBUpNextItemFrag on VideoPB {\n  creator {\n    id\n    displayname\n    __typename\n  }\n  permlink\n  title\n  totalReward\n  thumbnailUrl\n  length\n  createdAt\n  category {\n    id\n    title\n    __typename\n  }\n  viewCount\n  __typename\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n\nfragment VVideoPBUpNextTopContributorFrag on ContributionConnection {\n  list {\n    amount\n    contributor {\n      ...VDliveAvatarFrag\n      ...VDliveNameFrag\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
     };
 
     const results = callGQL(gql);
@@ -723,8 +737,13 @@ function getVideoDetails(url) {
 
     const videoSources = md.resolution.map(x =>
         new VideoUrlSource({
+            // width: integer,
+            // height: integer,
+            // container: string,
+            // codec: string,
             name: x.resolution,
             duration: md.length,
+            // bitrate: integer,
             url: signURL(x.url)
         })
     );
@@ -751,25 +770,6 @@ function getVideoDetails(url) {
 
 
 
-function signURL(url) {
-    let gql = {
-        operationName: "GenerateSignURL",
-        variables: {
-            hash: url.replace(/\+/g, '%2B')
-        },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "c6cb037b35d34a66573c65f4fb9c0ee81eaa58aaffe26783891ff085320d51c0"
-            }
-        },
-        query: "mutation GenerateSignURL($hash: String!) {\n  signURLGenerate(hash: $hash) {\n    url\n    err {\n      code\n      __typename\n    }\n    __typename\n  }\n}\n"
-    }
-    const results = callGQL(gql);
-
-    return results.data.signURLGenerate.url;
-}
-
 //* Internals (Extracted from FUTO's Twitch Script and modified)
 /**
  * Posts to GQL_URL with the gql query. Includes relevant headers.
@@ -786,6 +786,7 @@ function callGQL(gql, use_authenticated = false, parse = true) {
         JSON.stringify(gql),
         {
             Accept: '*/*',
+            "Content-Type": "application/json",
             DNT: '1',
             Host: 'graphigo.prd.dlive.tv',
             Origin: 'https://dlive.tv',
@@ -840,6 +841,26 @@ function callGQL(gql, use_authenticated = false, parse = true) {
         }
     }
     return json;
+}
+
+function signURL(url) {
+    let gql = {
+        operationName: "GenerateSignURL",
+        variables: {
+            hash: url.replace(/\+/g, '%2B')
+        },
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "c6cb037b35d34a66573c65f4fb9c0ee81eaa58aaffe26783891ff085320d51c0"
+            }
+        },
+        /** Query is needed to work properly */
+        query: "mutation GenerateSignURL($hash: String!) {\n  signURLGenerate(hash: $hash) {\n    url\n    err {\n      code\n      __typename\n    }\n    __typename\n  }\n}\n"
+    }
+    const results = callGQL(gql);
+
+    return results.data.signURLGenerate.url;
 }
 
 log("LOADED");

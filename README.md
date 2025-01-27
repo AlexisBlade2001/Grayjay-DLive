@@ -54,8 +54,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [x] View Count
      - [x] Video Sources
        - [ ] Quality Options
-     - [ ] Rating
-     - [ ] Comments
+     - [x] Comments
        - [ ] Subcomments
    - [x] Uploads / Videos
      - [x] Title
@@ -67,8 +66,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [x] View Count
      - [x] Video Sources
        - [x] Quality Options
-     - [ ] Rating
-     - [ ] Comments
+     - [x] Comments
        - [ ] Subcomments
    - [ ] Clips (Unavailable right now)
  - [ ] Authentication
@@ -89,4 +87,4 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
 - [ ] Fix Livestream VideoSource
 - [ ] Fix Video resolution listing
 - [ ] Fix Replay resolution listing
-and more...
+- and more...
