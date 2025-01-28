@@ -45,12 +45,86 @@
 
     "playback.prd.dlivecdn.com"
   ],
+
+  "captcha": {
+    "captchaUrl": "https://challenges.cloudflare.com",
+    "cookiesToFind": ["cfz_reddit", "cfz_facebook-pixel"]
+  },
+
   "authentication": {
     "loginUrl": "https://dlive.tv/m/home",
-		"headersToFind": ["Authorization"],
-		"domainHeadersToFind": {
-			".dlive.tv": ["authorization"]
-		},
+    "headersToFind": ["Authorization"],
+    "domainHeadersToFind": {
+      ".dlive.tv": ["authorization"]
+    },
     "loginButton": "#genius > .application--wrap > div:nth-child(1) > nav > div > div:nth-child(5) > div:nth-child(5) > div > .nav-login-legal > .nav-login-legal-menu > .btn-group > .loginIn"
-  }
+  },
+
+  "settings": [
+    {
+      "variable": "homeLanguage",
+      "name": "Home Language",
+      "description": "Select a language to receive streams in that language on the homepage.",
+      "type": "Dropdown",
+      "default": "0",
+      "options": [
+        "0 - All (All)",
+        "1 - English (English)",
+        "2 - Spanish (Español)",
+        "3 - Traditional Chinese (繁體中文)",
+        "4 - Polish (Polski)",
+        "5 - Turkish (Türkçe)",
+        "6 - Korean (한국어)",
+        "7 - Japanese (日本語)",
+        "8 - Thai (ภาษาไทย)",
+        "9 - French (Français)",
+        "10 - German (Deutsch)",
+        "11 - Indonesian (Bahasa Indonesia)",
+        "12 - Georgian (ქართული ენა)",
+        "13 - Dutch (Nederlands)",
+        "14 - Russian (русский)",
+        "15 - Czech (čeština)",
+        "16 - Portuguese (português)",
+        "17 - Hungarian (magyar nyelv)",
+        "18 - Italian (italiano)",
+        "19 - Greek (ελληνικά)",
+        "21 - Arabic (العَرَبِيَّة‎ )",
+        "22 - Azerbaijani (Azeri)",
+        "23 - Lithuanian (Lietuvių)",
+        "24 - Hebrew (עברית)",
+        "25 - Romanian (Română)",
+        "26 - Bosnian (босански)",
+        "27 - Serbian (српски)",
+        "28 - Croatian (hrvatski)",
+        "29 - Finnish (suomi)",
+        "30 - Albanian (shqip)",
+        "31 - Norwegian (norsk)",
+        "32 - Slovak (Slovenčina)",
+        "33 - Bulgarian (Български)",
+        "34 - Swedish (Svenska)",
+        "35 - Filipino (Pilipino)",
+        "100 - Latvia (Latvija)",
+        "101 - Slovenija (Slovenija)",
+        "102 - Uzbek (O’zbekiston)",
+        "103 - Icelandic (Ísland)",
+        "104 - Malaysia (Malaysia)",
+        "105 - Austria (Deutsch)",
+        "106 - Simplified Chinese (简体中文)"
+      ]
+    },
+    {
+      "variable": "showMatureTag",
+      "name": "Show Mature Tagged Content",
+      "description": "Allows you to search and view Mature Tagged content",
+      "type": "Boolean",
+      "default": "false"
+    },
+    {
+      "variable": "showXTag",
+      "name": "Show X-Tagged Content",
+      "description": "Allows you to search and view X-Tagged content",
+      "type": "Boolean",
+      "default": "false"
+    }
+  ]
 }
