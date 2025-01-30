@@ -714,7 +714,7 @@ function getReplayDetails(url) {
         viewCount: parseFloat(md.viewCount),
         description: md.content,
         /** Check getReplayChannelContent()'s last comment for it */
-        video: new VideoSourceDescriptor([new HLSSource({ url: md.playbackUrl })]),
+        video: new VideoSourceDescriptor([new HLSSource({ url: md.playbackUrl, container: "application/x-mpegURL" })]),
         hls: new HLSSource({ url: md.playbackUrl })
     });
 }
