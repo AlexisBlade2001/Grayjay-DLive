@@ -185,7 +185,7 @@ source.search = function (query, type, order, filters) {
     const videos = []; // The results (PlatformVideo)
     const hasMore = false; // Are there more pages?
     const context = { query: query, type: type, order: order, filters: filters }; // Relevant data for the next page
-    
+
     return new SomeSearchVideoPager(videos, hasMore, context);
 }
 
@@ -212,7 +212,7 @@ source.searchChannelContents = function (url, query, type, order, filters, conti
     const videos = []; // The results (PlatformVideo)
     const hasMore = false; // Are there more pages?
     const context = { channelUrl: channelUrl, query: query, type: type, order: order, filters: filters, continuationToken: continuationToken }; // Relevant data for the next page
-    
+
     return new SomeSearchChannelVideoPager(videos, hasMore, context);
 }
 
@@ -226,11 +226,11 @@ source.searchChannels = function (query, continuationToken) {
     let gql = {
         operationName: "NavSearchResult",
         variables: {
-	    	text: query,
-	    	userFirst: 8, // 8 is the default on DLive's website
-	    	userAfter: null, // "-1" is the proper default
-	    	categoryFirst: 0
-	    },
+            text: query,
+            userFirst: 8, // 8 is the default on DLive's website
+            userAfter: null, // "-1" is the proper default
+            categoryFirst: 0
+        },
         extensions: {
             persistedQuery: {
                 version: 1,
@@ -302,7 +302,7 @@ source.getChannel = function (url) {
     });
 }
 
-source.getChannelContents = function(url, type, order, filters, continuationToken) {
+source.getChannelContents = function (url, type, order, filters, continuationToken) {
     /**
      * @param url: string
      * @param type: string
@@ -403,10 +403,10 @@ source.getComments = function (url, continuationToken) {
         replyCount: comment.commentCount,
         // context: {  }
     }));
-    
+
     const hasMore = results.data.comments.pageInfo.hasNextPage ?? false // Are there more pages?
     const context = { url: url, continuationToken: results.data.comments.pageInfo.endCursor }; // Relevant data for the next page
-    
+
     return new DLiveCommentPager(comments, hasMore, context);
 }
 
@@ -450,13 +450,13 @@ class DLiveCommentPager extends CommentPager {
 }
 
 class DLiveHomeVideoPager extends VideoPager {
-	constructor(results, hasMore, context) {
-		super(results, hasMore, context);
-	}
-	
-	nextPage() {
-		return source.getHome(this.context.continuationToken);
-	}
+    constructor(results, hasMore, context) {
+        super(results, hasMore, context);
+    }
+
+    nextPage() {
+        return source.getHome(this.context.continuationToken);
+    }
 }
 
 class SomeSearchVideoPager extends VideoPager {
@@ -480,23 +480,23 @@ class SomeSearchChannelVideoPager extends VideoPager {
 }
 
 class DLiveChannelPager extends ChannelPager {
-	constructor(results, hasMore, context) {
-		super(results, hasMore, context);
-	}
-	
-	nextPage() {
-		return source.searchChannels(this.context.query, this.context.continuationToken);
-	}
+    constructor(results, hasMore, context) {
+        super(results, hasMore, context);
+    }
+
+    nextPage() {
+        return source.searchChannels(this.context.query, this.context.continuationToken);
+    }
 }
 
 class DLiveChannelVideoPager extends VideoPager {
-	constructor(results, hasMore, context) {
-		super(results, hasMore, context);
-	}
-	
-	nextPage() {
-		return source.getChannelContents(this.context.url, this.context.type, this.context.order, this.context.filters, this.context.continuationToken);
-	}
+    constructor(results, hasMore, context) {
+        super(results, hasMore, context);
+    }
+
+    nextPage() {
+        return source.getChannelContents(this.context.url, this.context.type, this.context.order, this.context.filters, this.context.continuationToken);
+    }
 }
 
 function getLiveChannelContent(url) {
@@ -545,6 +545,7 @@ function getLiveChannelContent(url) {
 
     return metadata;
 }
+
 function getReplayChannelContent(url) {
     let gql = {
         operationName: "LivestreamProfileReplay",
@@ -589,6 +590,7 @@ function getReplayChannelContent(url) {
      */
     return broadcasts;
 }
+
 function getVideoChannelContent(url) {
     let gql = {
         operationName: "LivestreamProfileVideo",
@@ -674,6 +676,7 @@ function getLiveDetails(url) {
         hls: new HLSSource({ url: `${URL_LIVE_HLS}/${md.username}.m3u8?web=true` }),
     });
 }
+
 function getReplayDetails(url) {
     let gql = {
         operationName: "PastBroadcastPage",
@@ -715,6 +718,7 @@ function getReplayDetails(url) {
         hls: new HLSSource({ url: md.playbackUrl })
     });
 }
+
 function getVideoDetails(url) {
     let gql = {
         operationName: "VideoPage",
@@ -739,7 +743,7 @@ function getVideoDetails(url) {
         new VideoUrlSource({
             // width: integer,
             // height: integer,
-            // container: string,
+            container: "video/mp4", // Container is MIME type?
             // codec: string,
             name: x.resolution,
             duration: md.length,
