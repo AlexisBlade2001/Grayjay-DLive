@@ -249,6 +249,7 @@ source.searchChannels = function (query, continuationToken) {
             thumbnail: channel.avatar ?? channel.creator.avatar,
             subscribers: channel.followers?.totalCount ?? channel.creator?.followers?.totalCount ?? 0,
             url: `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`,
+            urlAlternatives: [`${URL_BASE}/${channel.displayname ?? channel.creator.displayname}`, `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`],
         })
     );
     const hasMore = false; // Are there more pages?
@@ -297,8 +298,8 @@ source.getChannel = function (url) {
         // banner: channel.banner_image?.url,
         subscribers: channel.followers.totalCount,
         // description: channel.user.bio,
-        url: `${URL_BASE}/${channel.displayname}`,
-        // urlAlternatives: ,
+        url: `${URL_CHANNEL}/${channel.displayname}`,
+        urlAlternatives: [`${URL_BASE}/${channel.displayname}`, `${URL_CHANNEL}/${channel.displayname}`],
     });
 }
 
