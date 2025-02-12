@@ -390,8 +390,7 @@ source.getComments = function (url, continuationToken) {
 
     // The results (Comment)
     const comments = results.data.comments.list.map(comment => new PlatformComment({
-        /** I don't know how both context and contextUrl works, i'll just let it be */
-        // contextUrl: ,
+        contextUrl: url,
         author: new PlatformAuthorLink(
             new PlatformID(PLATFORM, `user:${comment.permlink.split('+')[0]}`, plugin.config.id),
             comment.author.displayname,
@@ -402,7 +401,7 @@ source.getComments = function (url, continuationToken) {
         rating: new RatingLikesDislikes(comment.upvotes, comment.downvotes),
         date: parseInt(comment.createdAt, 10) / 1000,
         replyCount: comment.commentCount,
-        // context: {  }
+        context: { permlink: comment.permlink }
     }));
 
     const hasMore = results.data.comments.pageInfo.hasNextPage ?? false // Are there more pages?
@@ -422,7 +421,9 @@ source.getSubComments = function (comment) {
         comment = JSON.parse(comment);
     }
 
-    return getCommentsPager(comment.context.claimId, comment.context.claimId, 1, false, comment.context.commentId);
+    if (!comment.replyCount || comment.replyCount === 0) {
+        return new DLiveSubCommentPager([], false, {});
+    }
 }
 
 //Live Chat
@@ -447,6 +448,16 @@ class DLiveCommentPager extends CommentPager {
 
     nextPage() {
         return source.getComments(this.context.url, this.context.continuationToken);
+    }
+}
+
+class DLiveSubCommentPager extends CommentPager {
+    constructor(results, hasMore, context) {
+        super(results, hasMore, context);
+    }
+
+    nextPage() {
+        if (!this.hasMore) return new DLiveSubCommentPager([], false, this.context);
     }
 }
 
