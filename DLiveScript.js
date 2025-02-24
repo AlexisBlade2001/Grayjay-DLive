@@ -10,6 +10,7 @@ const URL_HOME_M = `${URL_BASE_M}/home`;
 const URL_CHANNEL = `${URL_BASE}/u`;
 const URL_CHANNEL_VIDEOS = `${URL_BASE}/v`;
 const URL_CHANNEL_STREAMS = `${URL_BASE}/p`;
+const URL_CHANNEL_CLIPS = `${URL_BASE}/clip`;
 const URL_SEARCH_MOBILE = `${URL_BASE_M}/search`;
 const URL_BROWSE = `${URL_BASE}/s/browse`;
 const URL_LIVE_CHAT = `${URL_BASE}/c`;
@@ -24,6 +25,7 @@ const REGEX_CHANNEL_USER = new RegExp("dlive\\.tv\\/u\\/([a-zA-Z0-9-_]+)\\/?", "
 const REGEX_CHANNEL_USER_OLD = new RegExp("dlive\\.tv\\/u\\/([a-zA-Z0-9-_]+)\\+([a-zA-Z0-9-_]+)\\/?", "i");
 const REGEX_VOD = new RegExp("dlive\\.tv\\/p\\/([a-zA-Z0-9-_]+)\\+([a-zA-Z0-9-_]+)\\/?", "i");
 const REGEX_VIDEO = new RegExp("dlive\\.tv\\/v\\/([a-zA-Z0-9-_]+)\\+([a-zA-Z0-9-_]+)\\/?", "i");
+const REGEX_CLIP = new RegExp("dlive\\.tv\\/clip\\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\/?", "i");
 
 var config = {};
 
@@ -334,7 +336,7 @@ source.isContentDetailsUrl = function (url) {
      * @returns: boolean
      */
 
-    return REGEX_USER.test(url) || REGEX_USER_OLD.test(url) || REGEX_VIDEO.test(url) || REGEX_VOD.test(url);
+    return REGEX_USER.test(url) || REGEX_USER_OLD.test(url) || REGEX_VIDEO.test(url) || REGEX_VOD.test(url) || REGEX_CLIP.test(url);
 }
 
 source.getContentDetails = function (url) {
@@ -347,10 +349,10 @@ source.getContentDetails = function (url) {
         return getVideoDetails(url);
     } else if (url.includes('/p/')) {
         return getReplayDetails(url);
-    } else if (!url.includes('/p/' || '/v/')) {
-        return getLiveDetails(url);
+    } else if (url.includes('/clip/')) {
+        return getClipDetails(url);
     } else {
-        throw new ScriptException("Something went wrong?");
+        return getLiveDetails(url);
     }
 }
 
@@ -784,6 +786,44 @@ function getVideoDetails(url) {
     });
 }
 
+function getClipDetails(url) {
+    let gql = {
+        operationName: "ClipView",
+        variables: {
+            id: url.split('/').pop(),
+            isLoggedIn: false
+        },
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "2a3e20aee33fbacb31baa3101e03d35bbb522d72b0acb664be8de2f5995550ea"
+            }
+        }
+    };
+
+    const results = callGQL(gql);
+
+    const md = results.data?.clip;
+
+    return new PlatformVideoDetails({
+        id: new PlatformID(PLATFORM, md.id, config.id),
+        name: md.description,
+        thumbnails: new Thumbnails([new Thumbnail(md.thumbnailUrl)]),
+        author: new PlatformAuthorLink(
+            new PlatformID(PLATFORM, md.streamer.id, config.id),
+            md.streamer.displayname,
+            `${URL_CHANNEL}/${md.streamer.displayname}`,
+            md.streamer.avatar,
+            md.streamer.followers.totalCount
+        ),
+        url: url,
+        shareUrl: url,
+        viewCount: parseFloat(md.views),
+        description: `Clipper: ${md.clippedBy.displayname}`,
+        video: new VideoSourceDescriptor([new VideoUrlSource({ url: signURL(md.url) })]),
+        rating: new RatingLikes({ likes: md.upvotes })
+    });
+}
 
 
 //* Internals (Extracted from FUTO's Twitch Script and modified)
