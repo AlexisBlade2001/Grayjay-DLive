@@ -4,7 +4,8 @@ I don't have any kind of guide for this since I'm new on this kind of work, and 
 
 There's a lot of things to fix and implement, more importantly let the plugin fetch data properly with a paginator
 
-Licensing? I don't know how they work, I'm not going to use the wrong one so this is being uploaded without one, pretty sure I have to fix it
+Licensing? I guess is MIT, I mean, here's the [Sample Plugin](https://gitlab.futo.org/videostreaming/plugins/sample) repository... yeah, I should have submitted it from the very beginning, I guess...
+I wasn't sure about it because I didn't use it at the start of it, but instead I started working on it with an old sample documentation.
 
 Also the whole thing was made when Grayjay was releasing, I just forgot to upload
 
