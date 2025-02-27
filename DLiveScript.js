@@ -412,8 +412,7 @@ source.getComments = function (url, continuationToken) {
     return new DLiveCommentPager(comments, hasMore, context);
 }
 
-source.getSubComments = function (comment) {
-    throw new ScriptImplementationException("Subcomments not yet implemented")
+source.getSubComments = function (comment, continuationToken = null) {
     /**
      * @param comment: Comment
      * @returns: DLiveCommentPager
@@ -426,6 +425,57 @@ source.getSubComments = function (comment) {
     if (!comment.replyCount || comment.replyCount === 0) {
         return new DLiveSubCommentPager([], false, {});
     }
+
+    const gql = {
+        operationName: "ReplyComments",
+        variables: {
+            permlink: comment.context.permlink,
+            first: 20,
+            after: continuationToken,
+        },
+        extensions: {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: "b77aa980fe22c7fe3dbb71cc0131eb077fab62dc2c5d0d74b1f9a07a766c1243",
+            },
+        },
+        query: "query ReplyComments($permlink: String!, $first: Int, $after: String) {\n  comments(permlink: $permlink, first: $first, after: $after) {\n    ...VVideoPBCommentFrag\n    __typename\n  }\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n",
+    };
+
+    const results = callGQL(gql);
+
+    const subComments = results.data.comments.list.map((subComment) => {
+        return new PlatformComment({
+            contextUrl: comment.contextUrl,
+            author: new PlatformAuthorLink(
+                new PlatformID(
+                    PLATFORM,
+                    `user:${subComment.permlink.split("+")[0]}`,
+                    plugin.config.id
+                ),
+                subComment.author.displayname,
+                `${URL_CHANNEL}/${subComment.author.displayname}`,
+                subComment.author.avatar
+            ),
+            message: subComment.content,
+            rating: new RatingLikesDislikes(subComment.upvotes, subComment.downvotes),
+            date: parseInt(subComment.createdAt, 10) / 1000,
+            replyCount: subComment.commentCount,
+            context: {
+                permlink: subComment.permlink
+            },
+        });
+    });
+
+    const hasMore = results.data.comments.pageInfo.hasNextPage ?? false;
+    const context = {
+        parentComment: comment,
+        permlink: comment.context.permlink,
+        continuationToken: results.data.comments.pageInfo.endCursor,
+        contextUrl: comment.contextUrl
+    };
+
+    return new DLiveSubCommentPager(subComments, hasMore, context);
 }
 
 //Live Chat
@@ -449,6 +499,9 @@ class DLiveCommentPager extends CommentPager {
     }
 
     nextPage() {
+        if (!this.hasMore) {
+            return new CommentPager([], false);
+        }
         return source.getComments(this.context.url, this.context.continuationToken);
     }
 }
@@ -460,6 +513,8 @@ class DLiveSubCommentPager extends CommentPager {
 
     nextPage() {
         if (!this.hasMore) return new DLiveSubCommentPager([], false, this.context);
+
+        return source.getSubComments(this.context.parentComment, this.context.continuationToken);
     }
 }
 

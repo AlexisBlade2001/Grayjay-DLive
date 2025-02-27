@@ -126,5 +126,14 @@
       "type": "Boolean",
       "default": "false"
     }
-  ]
+  ],
+  "changelog": {
+    "2": [
+      "Feature: Subcomments support",
+      "Feature: Clips support"
+    ],
+    "1": [
+      "Initial Release"
+    ]
+  }
 }

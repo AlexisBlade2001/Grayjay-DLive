@@ -55,7 +55,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [x] Video Sources
        - [ ] Quality Options
      - [x] Comments
-       - [ ] Subcomments
+       - [x] Subcomments
    - [x] Uploads / Videos
      - [x] Title
      - [x] Thumbnail
@@ -67,8 +67,18 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [x] Video Sources
        - [x] Quality Options
      - [x] Comments
-       - [ ] Subcomments
-   - [ ] Clips (Unavailable right now)
+       - [x] Subcomments
+   - [x] Clips
+     - [x] Title
+     - [x] Thumbnail
+     - [x] Author
+     - [x] Share URL
+     - [x] Description
+     - [ ] Duration
+     - [x] View Count
+     - [x] Video Sources
+     - [ ] Comments
+     - [x] Rating
  - [ ] Authentication
    - [ ] Import Following
  - [ ] Platform Settings
@@ -77,7 +87,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
    - [ ] Home Language Selection
 
 ## What TO-DO / FIX
-- [ ] Fetch both comments and subcomments (on Replays and Uploads)
+- [x] Fetch both comments and subcomments (on Replays and Uploads)
 - [ ] Implement search filters
 - [ ] Import following list (can it also be Subscriptions?)
 - [ ] Fix Captcha
