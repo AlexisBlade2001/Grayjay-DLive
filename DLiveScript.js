@@ -756,7 +756,7 @@ function getVideoDetails(url) {
     const videoSources = md.resolution.map(x =>
         new VideoUrlSource({
             // width: integer,
-            // height: integer,
+            height: parseInt(x.resolution),
             container: "video/mp4", // Container is MIME type?
             // codec: string,
             name: x.resolution,
