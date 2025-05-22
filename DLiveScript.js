@@ -664,6 +664,9 @@ function getVideoChannelContent(url) {
     let gql = {
         operationName: "LivestreamProfileVideo",
         variables: {
+            // first: 20,
+            // after: "",
+            // sortedBy: "Trending",
             displayname: url.split('/').pop()
         },
         extensions: {
@@ -671,16 +674,18 @@ function getVideoChannelContent(url) {
                 version: 1,
                 sha256Hash: "df2b8483dbe1fb13ef47e3cf6af8d230571061d7038625587c7ed066bdbdddd3"
             }
-        }
+        },
+        /** Query is needed to work properly */
+        query: "query LivestreamProfileVideo($displayname: String!, $sortedBy: VideoSortOrder, $first: Int, $after: String) {\n  userByDisplayName(displayname: $displayname) {\n    id\n    videos(sortedBy: $sortedBy, first: $first, after: $after) {\n      pageInfo {\n        endCursor\n        hasNextPage\n        __typename\n      }\n      list {\n        ...ProfileVideoSnapFrag\n        __typename\n      }\n      __typename\n    }\n    username\n    __typename\n  }\n}\n\nfragment ProfileVideoSnapFrag on Video {\n  permlink\n  thumbnailUrl\n  title\n  totalReward\n  createdAt\n  viewCount\n  length\n  creator {\n    id\n    displayname\n    __typename\n  }\n  __typename\n}\n"
     };
 
     const results = callGQL(gql);
 
-    if (!results.data.userByDisplayName.videos.list) {
+    if (!results.data?.userByDisplayName?.videos?.list) {
         return;
     }
 
-    const videos = results.data.userByDisplayName.videos.list.map(video =>
+    const videos = results.data?.userByDisplayName?.videos?.list.map(video =>
         new PlatformVideo({
             id: new PlatformID(PLATFORM, video.permlink, config.id),
             name: video.title,
