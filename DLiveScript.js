@@ -664,6 +664,9 @@ function getVideoChannelContent(url) {
     let gql = {
         operationName: "LivestreamProfileVideo",
         variables: {
+            // first: 20,
+            // after: "",
+            // sortedBy: "Trending",
             displayname: url.split('/').pop()
         },
         extensions: {
@@ -671,16 +674,18 @@ function getVideoChannelContent(url) {
                 version: 1,
                 sha256Hash: "df2b8483dbe1fb13ef47e3cf6af8d230571061d7038625587c7ed066bdbdddd3"
             }
-        }
+        },
+        /** Query is needed to work properly */
+        query: "query LivestreamProfileVideo($displayname: String!, $sortedBy: VideoSortOrder, $first: Int, $after: String) {\n  userByDisplayName(displayname: $displayname) {\n    id\n    videos(sortedBy: $sortedBy, first: $first, after: $after) {\n      pageInfo {\n        endCursor\n        hasNextPage\n        __typename\n      }\n      list {\n        ...ProfileVideoSnapFrag\n        __typename\n      }\n      __typename\n    }\n    username\n    __typename\n  }\n}\n\nfragment ProfileVideoSnapFrag on Video {\n  permlink\n  thumbnailUrl\n  title\n  totalReward\n  createdAt\n  viewCount\n  length\n  creator {\n    id\n    displayname\n    __typename\n  }\n  __typename\n}\n"
     };
 
     const results = callGQL(gql);
 
-    if (!results.data.userByDisplayName.videos.list) {
+    if (!results.data?.userByDisplayName?.videos?.list) {
         return;
     }
 
-    const videos = results.data.userByDisplayName.videos.list.map(video =>
+    const videos = results.data?.userByDisplayName?.videos?.list.map(video =>
         new PlatformVideo({
             id: new PlatformID(PLATFORM, video.permlink, config.id),
             name: video.title,
@@ -914,40 +919,39 @@ function callGQL(gql, use_authenticated = false, parse = true) {
 
     const json = JSON.parse(resp.body);
 
-    if (json.errors) {
-        const filteredErrors = json.errors.filter(error => {
-            // Looking for a specific error
-            return !(
-                error.message === "Require login" &&
-                Array.isArray(error.path) &&
-                error.path.length === 2 &&
+    const filterErrors = (errors) => {
+        return errors.filter(error => {
+            const isLoginError = error.message.toLowerCase().includes("require login");
+            const isValidPath = Array.isArray(error.path) &&
                 error.path[0] === "userByDisplayName" &&
-                error.path[1] === "isSubscribing"
-            );
+                [
+                    "creator", "entries", "isFollowing", "isMe",
+                    "isSubscribing", "myRoomRole", "mySubscription",
+                    "pastbroadcast", "private", "rerun", "treasureChest"
+                ].includes(error.path[1]);
+
+            return !(isLoginError && isValidPath);
         });
+    };
+
+    if (json.errors) {
+        const filteredErrors = filterErrors(json.errors);
 
         if (filteredErrors.length > 0) {
             throw new ScriptException(`GQL returned errors: ${JSON.stringify(filteredErrors)}`);
         }
+        delete json.errors;
     }
 
     if (Array.isArray(json) && json.length > 0) {
         for (const obj of json) {
             if (obj.errors) {
-                const filteredErrors = obj.errors.filter(error => {
-                    // Looking for a specific error
-                    return !(
-                        error.message === "Require login" &&
-                        Array.isArray(error.path) &&
-                        error.path.length === 2 &&
-                        error.path[0] === "userByDisplayName" &&
-                        error.path[1] === "isSubscribing"
-                    );
-                });
+                const filteredErrors = filterErrors(obj.errors);
 
                 if (filteredErrors.length > 0) {
                     throw new ScriptException(`GQL returned errors: ${JSON.stringify(filteredErrors)}`);
                 }
+                delete obj.errors;
             }
         }
     }
