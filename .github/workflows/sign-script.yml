@@ -1,0 +1,55 @@
+name: Sign Plugin (Experimental)
+
+on:
+  push:
+    branches: [experimental]
+  workflow_dispatch:
+
+jobs:
+  sign-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up OpenSSL and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssl jq
+
+      - name: Write private key to file
+        run: |
+          echo "${{ secrets.SIGNING_PRIVATE_KEY }}" > tmp_private_key.pem
+          chmod 600 tmp_private_key.pem
+
+      - name: Validate private key and sign JS file
+        run: |
+          JS_FILE_PATH="DLiveScript.js"
+          CONFIG_FILE_PATH="DLiveConfig.json"
+          PRIVATE_KEY_FILE="tmp_private_key.pem"
+
+          # Check if the private key is valid
+          if ! openssl rsa -check -noout -in "$PRIVATE_KEY_FILE" > /dev/null 2>&1; then
+            echo "Invalid private key."
+            exit 1
+          fi
+
+          # Generate signature
+          SIGNATURE=$(openssl dgst -sha512 -sign "$PRIVATE_KEY_FILE" "$JS_FILE_PATH" | base64 -w 0)
+
+          # Extract public key and format it
+          PUBLIC_KEY=$(openssl rsa -pubout -in "$PRIVATE_KEY_FILE" 2>/dev/null | sed '1d;$d' | tr -d '\n')
+
+          # Inject into JSON
+          jq --arg signature "$SIGNATURE" --arg publicKey "$PUBLIC_KEY" \
+            '. + {scriptSignature: $signature, scriptPublicKey: $publicKey}' \
+            "$CONFIG_FILE_PATH" > temp_config.json && mv temp_config.json "$CONFIG_FILE_PATH"
+
+      - name: Commit and push updated config
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add DLiveConfig.json
+          git commit -m "build: Sign Plugin" || echo "No changes to commit"
+          git push

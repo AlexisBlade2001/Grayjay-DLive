@@ -1,11 +1,11 @@
 {
-  "name": "DLive",
+  "name": "DLive (Experimental)",
   "description": "A decentralized live streaming platform.",
   "author": "AlexisBlade2001",
   "authorUrl": "https://github.com/AlexisBlade2001",
 
   "platformUrl": "https://dlive.tv",
-  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/main/DLiveConfig.json",
+  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/experimental/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
   "version": 2,
