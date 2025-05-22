@@ -3,63 +3,57 @@
   "description": "A decentralized live streaming platform.",
   "author": "AlexisBlade2001",
   "authorUrl": "https://github.com/AlexisBlade2001",
-
   "platformUrl": "https://dlive.tv",
   "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/experimental/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
   "version": 2,
-
   "iconUrl": "./DLiveIcon.png",
-
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
-
-  "scriptSignature": "",
-  "scriptPublicKey": "",
-
-  "packages": ["Http", "DOMParser"],
-
+  "scriptSignature": "azxZ0W2DaOFQmuzRQfYkOa3guz9JLtSBr7QDQC5AA9mCq+gs8I/1MDEgQR1P2brNa2kBrZQD9IX7BZo/DfYAMGnNj4fe/YK6twuQwgI8gUYGW0klBQw37sTqy39ajAsczoHK6b//ztwy+Qomao4czTkGgYTgYpelemWW0sMTE8Y6fuPbQnV/HfvvXDTS1Mkxvffa0VqpE1jFajlizBNN4lBKMWsK48QDD/r1QayKdYo/wTgLso8UAv6qvf5tQC/CfrR7UEnJIKaeXWrPQ7ecwW1No8QIcAJo4UVeeUCLVDjDGT1buSpMZK+svGRBFGn+wRfmmPmJ9UJ9EGd5TJRkTb6AmQGQlP2zlN1I7DRvaANd1opYF0DrJfYOZrkqfXU+Wn4xeTo2DvJAjQel33tkE9OjZnK2beKufdZLF2VIU+zRceYPjMvJfkhCtXNpmso5GMgrdQrG49sbktz+gDkEy/NhrtnT1uQ2+G51PpZ7uGcVYCgIdFdEHnW1RTGEuaaRN/zlADPu91SVrMewTR96nXbzFZ5QgNqDgN0NvW8ro6hWVCQf095HdM4rT3mS1P8I7s3ZivUT0QB6AaI8Fj2n6XI5gWir4ualt9SFrKRT0bAOlmxPhz/ZkJc8YNeJBPw5h9la4LJAIw8rXwNxckRZzDMX6bqx3rQIdAKgH4/l0NM=",
+  "scriptPublicKey": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAr63Yf0gjJG8rV9IhtUQgxzryQCtacKfdaErLBC4sOhcnHEqWYJoAHGytGggRSyuGZoJFX2Ovd/8bH0YRT1e1oWMgSZFHQ0k3UE94G2Jw1jmmFvZEaMVxDW7RLkkvqYlXBNDLdkxfbyZepKV5mM4Fd5kbueAdfWdhsl5FhlqHCH10kudewcFq4WBTwQW1chsdkI0Iqrgwqzs5vH5cpphxzXUb+V6rtOUystpFwsEXb6m1Kzl0Uy/9AWTdT9JJJ7H88ycO6d6xX9UUjOXCwMWHxPcZ6UVPN2Plr8UBTJvF0uaYkDhNn0rzEe7NiJ8gUmrT0UJB2E5cYv4I4eTGp6RTwKe7UVCGEo8S7vQ0yPjxk8+dta+V6ECvg7VV1Ic00dfYqPsWPsZJ/xkJLeXIeXhjDNLm0pebr6W6bXkVPvS9PcYMoId+YpghojnPnzo/vmAIo4aS90G1zwmCNonv4suy2Kl48Pxz2OO0YepTuAZxJA6vrPcHxqbeAcAvfpk9PXLRmxD/eoiTsJusxkP5h6Z00gWJiFNNSntOShaGfCtloumqFHi5HIDiipo6KvIBvSYFaK0vlcFjdk0cAkMskuGP8B98zlMP5s9C19/uC6WsDmX1oQ0tNRIifBzg1QE0RuvvfqjI3/W4MqmKllbkwj/Pl/irIaeHsTK/+bwko/jK460CAwEAAQ==",
+  "packages": [
+    "Http",
+    "DOMParser"
+  ],
   "allowEval": false,
   "allowUrls": [
     "graphigo.prd.dlive.tv",
     "graphigostream.prd.dlive.tv",
-
     "api.dlive.tv",
     "api-ws.dlive.tv",
-
     "d.live",
     "dlive.tv",
-
     "dlive-android.firebaseio.com",
     "dlive-android.firebaseapp.com",
     "dlive-android.firebasestorage.app",
-
     "image.dlivecdn.com",
     "images.prd.dlivecdn.com",
     "images-sihv2.prd.dlivecdn.com",
-
     "live.prd.dlive.tv",
     "livestreamb.prdv3.dlivecdn.com",
-
     "videos.prd.dlivecdn.com",
-
     "playback.prd.dlivecdn.com"
   ],
-
   "captcha": {
     "captchaUrl": "https://challenges.cloudflare.com",
-    "cookiesToFind": ["cfz_reddit", "cfz_facebook-pixel"]
+    "cookiesToFind": [
+      "cfz_reddit",
+      "cfz_facebook-pixel"
+    ]
   },
-
   "authentication": {
     "loginUrl": "https://dlive.tv/m/home",
-    "headersToFind": ["Authorization"],
+    "headersToFind": [
+      "Authorization"
+    ],
     "domainHeadersToFind": {
-      ".dlive.tv": ["authorization"]
+      ".dlive.tv": [
+        "authorization"
+      ]
     },
     "loginButton": "#genius > .application--wrap > div:nth-child(1) > nav > div > div:nth-child(5) > div:nth-child(5) > div > .nav-login-legal > .nav-login-legal-menu > .btn-group > .loginIn"
   },
-
   "settings": [
     {
       "variable": "homeLanguage",
