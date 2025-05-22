@@ -914,40 +914,39 @@ function callGQL(gql, use_authenticated = false, parse = true) {
 
     const json = JSON.parse(resp.body);
 
-    if (json.errors) {
-        const filteredErrors = json.errors.filter(error => {
-            // Looking for a specific error
-            return !(
-                error.message === "Require login" &&
-                Array.isArray(error.path) &&
-                error.path.length === 2 &&
+    const filterErrors = (errors) => {
+        return errors.filter(error => {
+            const isLoginError = error.message.toLowerCase().includes("require login");
+            const isValidPath = Array.isArray(error.path) &&
                 error.path[0] === "userByDisplayName" &&
-                error.path[1] === "isSubscribing"
-            );
+                [
+                    "creator", "entries", "isFollowing", "isMe",
+                    "isSubscribing", "myRoomRole", "mySubscription",
+                    "pastbroadcast", "private", "rerun", "treasureChest"
+                ].includes(error.path[1]);
+
+            return !(isLoginError && isValidPath);
         });
+    };
+
+    if (json.errors) {
+        const filteredErrors = filterErrors(json.errors);
 
         if (filteredErrors.length > 0) {
             throw new ScriptException(`GQL returned errors: ${JSON.stringify(filteredErrors)}`);
         }
+        delete json.errors;
     }
 
     if (Array.isArray(json) && json.length > 0) {
         for (const obj of json) {
             if (obj.errors) {
-                const filteredErrors = obj.errors.filter(error => {
-                    // Looking for a specific error
-                    return !(
-                        error.message === "Require login" &&
-                        Array.isArray(error.path) &&
-                        error.path.length === 2 &&
-                        error.path[0] === "userByDisplayName" &&
-                        error.path[1] === "isSubscribing"
-                    );
-                });
+                const filteredErrors = filterErrors(obj.errors);
 
                 if (filteredErrors.length > 0) {
                     throw new ScriptException(`GQL returned errors: ${JSON.stringify(filteredErrors)}`);
                 }
+                delete obj.errors;
             }
         }
     }
