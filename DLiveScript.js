@@ -606,18 +606,15 @@ function getLiveChannelContent(url) {
 }
 
 function getReplayChannelContent(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "LivestreamProfileReplay",
+        operationName: "ReplayQuery",
         variables: {
-            first: 20,
-            displayname: url.split('/').pop()
+            displayname: clean,
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "d8c959e17f50e9ddf145b9797dfcb02e4b6138422dc554d40826b7740e0d494d"
-            }
-        }
+        query: "query ReplayQuery($displayname: String!, $after: String, $first: Int) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } pastBroadcastsV2(first: $first, after: $after) { pageInfo { ...PageInfoFragment } list { ...ReplayFragment } } } } fragment PageInfoFragment on PageInfo { endCursor hasNextPage } fragment ReplayFragment on PastBroadcast { id title thumbnailUrl createdAt permlink length viewCount }",
     }
 
     const results = callGQL(gql);
@@ -626,28 +623,27 @@ function getReplayChannelContent(url) {
         return;
     }
 
-    const broadcasts = results.data.userByDisplayName.pastBroadcastsV2.list.map(broadcast =>
+    const creator = results.data?.userByDisplayName
+
+    const replays = creator.pastBroadcastsV2?.list.map(replay =>
         new PlatformVideo({
-            id: new PlatformID(PLATFORM, broadcast.permlink, config.id),
-            name: broadcast.title,
-            thumbnails: new Thumbnails([new Thumbnail(broadcast.thumbnailUrl)]),
+            id: new PlatformID(PLATFORM, replay.id, config.id),
+            name: replay.title,
+            thumbnails: new Thumbnails([new Thumbnail(replay.thumbnailUrl)]),
             author: new PlatformAuthorLink(
-                new PlatformID(PLATFORM, broadcast.creator.id, config.id),
-                broadcast.creator.displayname,
-                `${URL_CHANNEL}/${broadcast.creator.displayname}`
+                new PlatformID(PLATFORM, creator.id, config.id),
+                creator.displayname,
+                `${URL_CHANNEL}/${creator.displayname}`,
+                creator.avatar,
+                creator.followers.totalCount
             ),
-            uploadDate: parseInt(broadcast.createdAt, 10) / 1000,
-            duration: parseInt(broadcast.length),
-            viewCount: parseFloat(broadcast.viewCount),
-            url: `${URL_CHANNEL_STREAMS}/${broadcast.permlink}`,
+            uploadDate: parseInt(replay.createdAt, 10) / 1000,
+            url: `${URL_CHANNEL_STREAMS}/${replay.permlink}`,
+            duration: parseInt(replay.length),
+            viewCount: parseFloat(replay.viewCount),
         })
     );
-    /** idk how this one works, it is part of a past broadcast, it doesn't exists in LivestreamProfileVideo's operation
-     *  "playbackUrl": "https://playback.prd.dlivecdn.com/live/userID/1734356452/vod.m3u8",
-     *  "resolution": [{"resolution": "src","url": "https://playback.prd.dlivecdn.com/live/userID/1734356452/src/playback.m3u8"},
-     *  ]
-     */
-    return broadcasts;
+    return replays;
 }
 
 function getVideoChannelContent(url) {

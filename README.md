@@ -31,7 +31,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [ ] Filtering
      - [x] Listing
        - [x] Livestream
-       - [x] Replays (Profile Pic Missing)
+       - [x] Replays
        - [x] Uploads
        - [ ] Clips (Disabled right now)
  - [ ] Content
