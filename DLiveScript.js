@@ -271,23 +271,16 @@ source.isChannelUrl = function (url) {
 }
 
 source.getChannel = function (url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "LivestreamPage",
         variables: {
-            displayname: url.split('/').pop(),
-            add: false,  // I don't know the purpose of the variable
-            isLoggedIn: false,
-            isMe: false,  // Show's some extra data from the logged in user
-            order: "PickTime",  // I don't know the purpose of the variable
-            showUnpicked: false  // I don't know the purpose of the variable
+            displayname: clean
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "2e6216b014c465c64e5796482a3078c7ec7fbc2742d93b072c03f523dbcf71e2"
-            }
-        }
-    };
+        operationName: "UserInfo",
+        query: "query UserInfo( $displayname: String! ) { userByDisplayName( displayname: $displayname ) { id displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } }",
+    }
 
     const results = callGQL(gql);
 
@@ -297,9 +290,13 @@ source.getChannel = function (url) {
         id: new PlatformID(PLATFORM, channel.id, config.id),
         name: channel.displayname,
         thumbnail: channel.avatar,
-        // banner: channel.banner_image?.url,
-        subscribers: channel.followers.totalCount,
-        // description: channel.user.bio,
+        banner: channel.subSetting?.backgroundImage
+            ? channel.subSetting.backgroundImage
+            : channel.offlineImage !== "https://images.prd.dlivecdn.com/offlineimage/video-placeholder.png"
+                ? channel.offlineImage
+                : null,
+        subscribers: channel.followers?.totalCount,
+        description: channel.about, // This is deprecated, some channels have it, Use panels instead? 
         url: `${URL_CHANNEL}/${channel.displayname}`,
         urlAlternatives: [`${URL_BASE}/${channel.displayname}`, `${URL_CHANNEL}/${channel.displayname}`],
     });

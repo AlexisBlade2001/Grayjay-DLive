@@ -21,9 +21,9 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
    - [x] Profile Data
      - [x] Name
      - [x] Photo
-     - [ ] Banner
+     - [x] Banner
      - [x] Followers
-     - [ ] Description
+     - [x] Description
      - [x] URL
    - [ ] Membership
    - [x] Content
