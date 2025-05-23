@@ -777,20 +777,16 @@ function getReplayDetails(url) {
 }
 
 function getVideoDetails(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "VideoPage",
+        operationName: "VideoDetails",
         variables: {
-            permlink: url.split('/').pop(),
-            isLoggedIn: false
+            permlink: clean,
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "a437ab1221ff46c180c60529efee5881820feb7b5fb744b0341e4412453777f2"
-            }
-        },
-        query: "query VideoPage($permlink: String!, $commentsFirst: Int, $topContributionsFirst: Int, $commentsAfter: String, $topContributionsAfter: String, $isLoggedIn: Boolean!) {\n  video(permlink: $permlink) {\n    ageRestriction\n    creator {\n      id\n      displayname\n      donateDisabled\n      subscribeDisabled\n      __typename\n    }\n    createdAt\n    content\n    thumbnailUrl\n    resolution {\n      resolution\n      url\n      __typename\n    }\n    upNext {\n      list {\n        ...VVideoPBUpNextItemFrag\n        __typename\n      }\n      __typename\n    }\n    comments(first: $commentsFirst, after: $commentsAfter) {\n      ...VVideoPBCommentFrag\n      __typename\n    }\n    topContributions(first: $topContributionsFirst, after: $topContributionsAfter) {\n      ...VVideoPBUpNextTopContributorFrag\n      __typename\n    }\n    ...VideoPBHeaderFrag\n    ...VVideoPBInfoFrag\n    tags\n    __typename\n  }\n}\n\nfragment VVideoPBInfoFrag on VideoPB {\n  category {\n    title\n    imgUrl\n    id\n    __typename\n  }\n  language {\n    id\n    language\n    __typename\n  }\n  content\n  permlink\n  title\n  createdAt\n  creator {\n    id\n    displayname\n    __typename\n  }\n  ...VDonationGiftFrag\n  __typename\n}\n\nfragment VDonationGiftFrag on Post {\n  permlink\n  category {\n    id\n    title\n    __typename\n  }\n  language {\n    id\n    language\n    __typename\n  }\n  creator {\n    id\n    username\n    __typename\n  }\n  __typename\n}\n\nfragment VideoPBHeaderFrag on VideoPB {\n  totalReward\n  viewCount\n  creator {\n    id\n    username\n    displayname\n    about\n    followers {\n      totalCount\n      __typename\n    }\n    ...VDliveAvatarFrag\n    ...VDliveNameFrag\n    ...VFollowFrag\n    ...VSubscriptionFrag\n    __typename\n  }\n  ...VPostInfoShareFrag\n  __typename\n}\n\nfragment VDliveAvatarFrag on User {\n  id\n  avatar\n  effect\n  __typename\n}\n\nfragment VDliveNameFrag on User {\n  id\n  displayname\n  partnerStatus\n  __typename\n}\n\nfragment VFollowFrag on User {\n  id\n  username\n  displayname\n  isFollowing @include(if: $isLoggedIn)\n  isMe @include(if: $isLoggedIn)\n  followers {\n    totalCount\n    __typename\n  }\n  __typename\n}\n\nfragment VSubscriptionFrag on User {\n  id\n  username\n  displayname\n  lastStreamedAt\n  mySubscription @include(if: $isLoggedIn) {\n    isSubscribing\n    nextBillingAt\n    lemonSub\n    subType\n    subscribedAt\n    subStreak\n    lastBilledDate\n    status\n    month\n    subStreakStartedAt\n    __typename\n  }\n  isSubscribing @include(if: $isLoggedIn)\n  ...EmojiFrag\n  canSubscribe\n  isMe @include(if: $isLoggedIn)\n  subSetting {\n    badgeColor\n    badgeText\n    textColor\n    streakTextColor\n    benefits\n    backgroundImage\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiFrag on User {\n  id\n  emoji {\n    ...EmojiGlobalFrag\n    ...EmojiVipFrag\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiGlobalFrag on AllEmojis {\n  global {\n    totalCount\n    list {\n      name\n      username\n      sourceURL\n      mimeType\n      level\n      type\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment EmojiVipFrag on AllEmojis {\n  vip {\n    totalCount\n    list {\n      name\n      username\n      sourceURL\n      mimeType\n      level\n      type\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment VPostInfoShareFrag on Post {\n  permlink\n  title\n  content\n  category {\n    id\n    backendID\n    title\n    __typename\n  }\n  creator {\n    id\n    username\n    displayname\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBUpNextItemFrag on VideoPB {\n  creator {\n    id\n    displayname\n    __typename\n  }\n  permlink\n  title\n  totalReward\n  thumbnailUrl\n  length\n  createdAt\n  category {\n    id\n    title\n    __typename\n  }\n  viewCount\n  __typename\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n\nfragment VVideoPBUpNextTopContributorFrag on ContributionConnection {\n  list {\n    amount\n    contributor {\n      ...VDliveAvatarFrag\n      ...VDliveNameFrag\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
-    };
+        query: "query VideoDetails($permlink: String!) { video(permlink: $permlink) { id title thumbnailUrl creator { id displayname username avatar followers { totalCount } } createdAt permlink length viewCount resolution { resolution url } content ageRestriction category { title } language { id backendID language code } } }",
+    }
 
     const results = callGQL(gql);
 
@@ -799,17 +795,15 @@ function getVideoDetails(url) {
     const videoSources = md.resolution.map(x =>
         new VideoUrlSource({
             // width: integer,
-            height: parseInt(x.resolution),
-            container: "video/mp4", // Container is MIME type?
             // codec: string,
             name: x.resolution,
-            duration: md.length,
             // bitrate: integer,
+            duration: parseInt(md.length),
             url: signURL(x.url)
         })
     );
     return new PlatformVideoDetails({
-        id: new PlatformID(PLATFORM, md.permlink, config.id),
+        id: new PlatformID(PLATFORM, md.id, config.id),
         name: md.title,
         thumbnails: new Thumbnails([new Thumbnail(md.thumbnailUrl)]),
         author: new PlatformAuthorLink(
@@ -820,10 +814,13 @@ function getVideoDetails(url) {
             md.creator.followers.totalCount
         ),
         uploadDate: parseInt(md.createdAt, 10) / 1000,
-        url: url,
-        shareUrl: url,
+        url: `${URL_CHANNEL_VIDEOS}/${md.permlink}`,
+
+        shareUrl: `${URL_CHANNEL_VIDEOS}/${md.permlink}`, // ?ref=username
+
         duration: parseInt(md.length),
         viewCount: parseFloat(md.viewCount),
+
         description: md.content,
         video: new VideoSourceDescriptor(videoSources),
     });
