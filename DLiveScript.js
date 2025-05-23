@@ -689,23 +689,17 @@ function getVideoChannelContent(url) {
 }
 
 function getLiveDetails(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "LivestreamPage",
+        operationName: "LiveDetails",
         variables: {
-            displayname: url.split('/').pop(),
-            add: false,
-            isLoggedIn: false,
-            isMe: false,
-            showUnpicked: false,
-            order: "PickTime"
+            displayname: clean,
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "2e6216b014c465c64e5796482a3078c7ec7fbc2742d93b072c03f523dbcf71e2"
-            }
-        }
+        query: "query LiveDetails($displayname: String!) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } livestream { id title thumbnailUrl createdAt permlink watchingCount content encryptedStream ageRestriction earnRestriction category { title } language { id backendID language code } } } }",
     }
+
     const results = callGQL(gql);
 
     const md = results.data.userByDisplayName;
@@ -722,15 +716,16 @@ function getLiveDetails(url) {
             md.followers.totalCount
         ),
         uploadDate: parseInt(new Date().getTime() / 1000),
-        url: url,
-        shareUrl: url,
-        isLive: true,
-        duration: parseInt(md.livestream.length),
+        url: `${URL_BASE}/${md.displayname}`,
+
+        shareUrl: `${URL_BASE}/${md.displayname}`, // ?ref=username
+
         viewCount: parseFloat(md.livestream.watchingCount),
-        description: md.livestream.content,
+
+        isLive: true,
+        description: `${md.livestream.content}`,
         /** I haven't been able to fetch the live source, I'm trying to figure it out */
         video: new VideoSourceDescriptor([new HLSSource({ url: `${URL_LIVE_HLS}/${md.username}.m3u8?web=true` })]),
-        hls: new HLSSource({ url: `${URL_LIVE_HLS}/${md.username}.m3u8?web=true` }),
     });
 }
 
