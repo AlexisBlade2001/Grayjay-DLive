@@ -844,41 +844,44 @@ function getVideoDetails(url) {
 }
 
 function getClipDetails(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
         operationName: "ClipView",
         variables: {
-            id: url.split('/').pop(),
-            isLoggedIn: false
+            id: clean,
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "2a3e20aee33fbacb31baa3101e03d35bbb522d72b0acb664be8de2f5995550ea"
-            }
-        }
+        query: "query ClipView( $id: String! ) { clip( id: $id ) { id description thumbnailUrl streamer { id displayname username avatar followers { totalCount } } createdAt startTime endTime views clippedBy { id displayname username avatar followers { totalCount } } category { title } language { id backendID language code } url upvotes } }"
     };
 
     const results = callGQL(gql);
 
-    const md = results.data?.clip;
+    const clip = results.data?.clip;
 
     return new PlatformVideoDetails({
-        id: new PlatformID(PLATFORM, md.id, config.id),
-        name: md.description,
-        thumbnails: new Thumbnails([new Thumbnail(md.thumbnailUrl)]),
+        id: new PlatformID(PLATFORM, clip.id, config.id),
+        name: clip.description,
+        thumbnails: new Thumbnails([new Thumbnail(clip.thumbnailUrl)]),
         author: new PlatformAuthorLink(
-            new PlatformID(PLATFORM, md.streamer.id, config.id),
-            md.streamer.displayname,
-            `${URL_CHANNEL}/${md.streamer.displayname}`,
-            md.streamer.avatar,
-            md.streamer.followers.totalCount
+            new PlatformID(PLATFORM, clip.streamer.id, config.id),
+            clip.streamer.displayname,
+            `${URL_CHANNEL}/${clip.streamer.displayname}`,
+            clip.streamer.avatar,
+            clip.streamer.followers.totalCount
         ),
-        url: url,
-        shareUrl: url,
-        viewCount: parseFloat(md.views),
-        description: `Clipper: ${md.clippedBy.displayname}`,
-        video: new VideoSourceDescriptor([new VideoUrlSource({ url: signURL(md.url) })]),
-        rating: new RatingLikes({ likes: md.upvotes })
+        uploadDate: parseInt(clip.createdAt, 10) / 1000,
+        url: `${URL_CHANNEL_CLIPS}/${clip.id}`,
+
+        shareUrl: `${URL_CHANNEL_CLIPS}/${clip.id}`, // ?ref=username
+
+        duration: 0,
+        viewCount: parseFloat(clip.views),
+
+        description: `Clipped by: ${clip.clippedBy.displayname}`,
+        video: new VideoSourceDescriptor([new VideoUrlSource({ url: clip.url })]),
+
+        rating: new RatingLikes(clip.upvotes),
     });
 }
 
