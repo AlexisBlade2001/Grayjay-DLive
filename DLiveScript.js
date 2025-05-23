@@ -566,22 +566,15 @@ class DLiveChannelVideoPager extends VideoPager {
 }
 
 function getLiveChannelContent(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "LivestreamPage",
+        operationName: "LiveQuery",
         variables: {
-            displayname: url.split('/').pop(),
-            add: false,
-            isLoggedIn: false,
-            isMe: false,
-            order: "PickTime",
-            showUnpicked: false
+            displayname: clean
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "2e6216b014c465c64e5796482a3078c7ec7fbc2742d93b072c03f523dbcf71e2"
-            }
-        }
+        query: "query LiveQuery($displayname: String!) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } livestream { id title thumbnailUrl createdAt permlink watchingCount } } }",
     }
 
     const results = callGQL(gql);
@@ -605,7 +598,7 @@ function getLiveChannelContent(url) {
         ),
         uploadDate: parseInt(new Date().getTime() / 1000),
         viewCount: parseFloat(md.livestream.watchingCount),
-        url: url,
+        url: `${URL_BASE}/${md.displayname}`,
         isLive: true,
     })];
 
