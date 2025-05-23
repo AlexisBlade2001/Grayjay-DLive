@@ -54,7 +54,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [x] Duration
      - [x] View Count
      - [x] Video Sources
-       - [ ] Quality Options
+       - [x] Quality Options
      - [x] Comments
        - [x] Subcomments
    - [x] Uploads / Videos
