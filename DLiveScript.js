@@ -651,23 +651,16 @@ function getReplayChannelContent(url) {
 }
 
 function getVideoChannelContent(url) {
+    const raw = url.split('/').pop();
+    const clean = raw.split('?')[0];
+
     let gql = {
-        operationName: "LivestreamProfileVideo",
+        operationName: "VideoQuery",
         variables: {
-            // first: 20,
-            // after: "",
-            // sortedBy: "Trending",
-            displayname: url.split('/').pop()
+            displayname: clean,
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "df2b8483dbe1fb13ef47e3cf6af8d230571061d7038625587c7ed066bdbdddd3"
-            }
-        },
-        /** Query is needed to work properly */
-        query: "query LivestreamProfileVideo($displayname: String!, $sortedBy: VideoSortOrder, $first: Int, $after: String) {\n  userByDisplayName(displayname: $displayname) {\n    id\n    videos(sortedBy: $sortedBy, first: $first, after: $after) {\n      pageInfo {\n        endCursor\n        hasNextPage\n        __typename\n      }\n      list {\n        ...ProfileVideoSnapFrag\n        __typename\n      }\n      __typename\n    }\n    username\n    __typename\n  }\n}\n\nfragment ProfileVideoSnapFrag on Video {\n  permlink\n  thumbnailUrl\n  title\n  totalReward\n  createdAt\n  viewCount\n  length\n  creator {\n    id\n    displayname\n    __typename\n  }\n  __typename\n}\n"
-    };
+        query: "query VideoQuery( $displayname: String! $sortedBy: VideoSortOrder $first: Int $after: String ) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount }  videos(sortedBy: $sortedBy, first: $first, after: $after) { pageInfo {  ...PageInfoFragment } list {  ...VideoFragment } } } } fragment PageInfoFragment on PageInfo { endCursor hasNextPage } fragment VideoFragment on Video { id title thumbnailUrl createdAt permlink length viewCount } ",
+    }
 
     const results = callGQL(gql);
 
@@ -675,20 +668,24 @@ function getVideoChannelContent(url) {
         return;
     }
 
-    const videos = results.data?.userByDisplayName?.videos?.list.map(video =>
+    const creator = results.data?.userByDisplayName
+
+    const videos = creator.videos?.list.map(video =>
         new PlatformVideo({
-            id: new PlatformID(PLATFORM, video.permlink, config.id),
+            id: new PlatformID(PLATFORM, video.id, config.id),
             name: video.title,
             thumbnails: new Thumbnails([new Thumbnail(video.thumbnailUrl)]),
             author: new PlatformAuthorLink(
-                new PlatformID(PLATFORM, video.creator.id, config.id),
-                video.creator.displayname,
-                `${URL_CHANNEL}/${video.creator.displayname}`
+                new PlatformID(PLATFORM, creator.id, config.id),
+                creator.displayname,
+                `${URL_CHANNEL}/${creator.displayname}`,
+                creator.avatar,
+                creator.followers.totalCount
             ),
             uploadDate: parseInt(video.createdAt, 10) / 1000,
+            url: `${URL_CHANNEL_VIDEOS}/${video.permlink}`,
             duration: parseInt(video.length),
             viewCount: parseFloat(video.viewCount),
-            url: `${URL_CHANNEL_VIDEOS}/${video.permlink}`,
         })
     );
 
