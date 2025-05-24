@@ -7,7 +7,7 @@
   "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/main/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
-  "version": 3,
+  "version": 4,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
   "scriptSignature": "aZ50x9Wm7uDpOrmDLIQY6f22/3iM/YQOw+9WSdP+yOsepRc1+NdbMwdCtJ0BIr9Hlz+4tNhsjvjMYBEy7crH4+n/nVrW1U5gBrvl91uF3+FiUpUEU516nUMuxy8UKpr4sWpMgbe7HHaSUbr/TBVEhY7N8zkCTIyRXLY7pozUog+eDFjC35n7y37RKtuB9fMUlt5oN+gKS3lFVo6fSjKX5R4RxUt5mNzR2E4zDDDBblFxFShHpZaSRrK44EzFB65n3lrQVIlHFt9JQoh4QuVDqyip/IJqLiwmb1Vj7MfMxgzg+4NnDpU5hjilU6H7OnVyXW+k7bdSY1U/kUFsVURsm7wjC/baTsazkGRyKei796JIpgXt+pdOEPBpmIC+tGnVG1V1ZJ2so2a4hm0yYjurp8gJXStQwwcjukuE3Brlg/8cCxue3A17sxkScb5fJuAxvlf3tjewY4wRLeE6M92eGgtazFOvT8hdvCROri0Pt2BEq47KjhutJcsJcaT3hiJoViJRxtXLOicQLrUHq0B2/oPxX9vV5W6byhd0ICUyP5I+niRUPbAkCG+QO1rOSxeeDDRltCoUZ75A9fiMmrX5yE6+HjvoSWNmeBeRpDuixcY8rnxEIP6QVcNWy1mFCEOZAGWVi6HutEg6nNSOYsRVgHb48ewJsjYhrrl1De7+4xU=",
@@ -24,9 +24,6 @@
     "api-ws.dlive.tv",
     "d.live",
     "dlive.tv",
-    "dlive-android.firebaseio.com",
-    "dlive-android.firebaseapp.com",
-    "dlive-android.firebasestorage.app",
     "image.dlivecdn.com",
     "images.prd.dlivecdn.com",
     "images-sihv2.prd.dlivecdn.com",
@@ -122,6 +119,16 @@
     }
   ],
   "changelog": {
+    "4": [
+      "Fix: Banner and Description for Channels",
+      "Fix: Quality Options for Replays",
+      "Fix: Missing Channel Avatar while fetching Videos and Replays",
+      "Refactor: New Queries for Videos, Replays and Livestreams"
+    ],
+    "3": [
+      "Fix: Filter errors",
+      "Fix: Missing Query while fetching Channel Videos"
+    ],
     "2": [
       "Feature: Subcomments support",
       "Feature: Clips support"
