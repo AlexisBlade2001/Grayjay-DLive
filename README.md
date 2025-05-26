@@ -34,15 +34,16 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
        - [x] Replays
        - [x] Uploads
        - [ ] Clips (Disabled right now)
- - [ ] Content
-   - [ ] Live Streams
+ - [x] Content
+   - [x] Live Streams
      - [x] Title
      - [x] Thumbnail
      - [x] Author
      - [x] Share URL
      - [x] Duration
      - [x] View Count
-     - [ ] Video Sources
+     - [x] Video Sources
+       - [x] Quality Options
      - [x] Live Chat / Events
        - [ ] Native Implementation
        - [x] WebView Implementation
@@ -95,7 +96,7 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
 - [ ] Fix Pagers
 - [ ] Fix Authentication
 - [ ] Fix Live Chat Webview
-- [ ] Fix Livestream VideoSource
 - [ ] Fix Video resolution listing
 - [ ] Fix Replay resolution listing
+- [x] Fix Livestream VideoSource
 - and more...

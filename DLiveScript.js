@@ -1,5 +1,6 @@
-const URL_LIVE = "https://live.prd.dlive.tv";
-const URL_LIVE_HLS = `${URL_LIVE}/hls/live`;
+const HLS_BASE = "https://live.prd.dlive.tv/hls";
+const HLS_SIGN = `${HLS_BASE}/sign/url`;
+const HLS_LIVE = `${HLS_BASE}/live`;
 
 const GQL_URL = "https://graphigo.prd.dlive.tv";
 
@@ -704,6 +705,8 @@ function getLiveDetails(url) {
 
     const md = results.data.userByDisplayName;
 
+    const hlsSources = getLiveStreamUrl(md.username);
+
     return new PlatformVideoDetails({
         id: new PlatformID(PLATFORM, md.livestream.id, config.id),
         name: md.livestream.title,
@@ -725,7 +728,7 @@ function getLiveDetails(url) {
         isLive: true,
         description: `${md.livestream.content}`,
         /** I haven't been able to fetch the live source, I'm trying to figure it out */
-        video: new VideoSourceDescriptor([new HLSSource({ url: `${URL_LIVE_HLS}/${md.username}.m3u8?web=true` })]),
+        video: new VideoSourceDescriptor(hlsSources)
     });
 }
 
@@ -959,6 +962,113 @@ function signURL(url) {
     const results = callGQL(gql);
 
     return results.data.signURLGenerate.url;
+}
+
+function getLiveStreamUrl(userName) {
+    const initialResponse = http.GET(
+        `${HLS_LIVE}/${userName}.m3u8?web=true`,
+        {
+            Accept: '*/*',
+            DNT: '1',
+            Origin: 'https://dlive.tv',
+            Referer: 'https://dlive.tv/',
+        }
+    );
+
+    if (initialResponse.code !== 200) {
+        throw new Error(`Error getting stream (${initialResponse.code}): ${initialResponse.body}`);
+    }
+
+    const sources = parseM3u8(initialResponse.body);
+
+    if (sources.length === 0) {
+        throw new Error('Stream not found');
+    }
+
+    return getQualitySources(sources);
+}
+
+function parseM3u8(content) {
+    const lines = content.split('\n');
+    const sources = [];
+    let hsl = {};
+
+    for (const line of lines) {
+        if (line.startsWith('#EXT-X-STREAM-INF:')) {
+            hsl = line
+                .replace('#EXT-X-STREAM-INF:', '')
+                .split(',')
+                .reduce((acc, pair) => {
+                    const [key, value] = pair.split('=');
+                    const cleanKey = key.trim().toLowerCase();
+                    const cleanValue = value?.replace(/"/g, '') || '';
+
+                    if (cleanKey === 'bandwidth') acc.bandwidth = parseInt(cleanValue);
+                    if (cleanKey === 'resolution') {
+                        const [width, height] = cleanValue.split('x');
+                        acc.width = parseInt(width);
+                        acc.height = parseInt(height);
+                        acc.resolution = cleanValue
+                    }
+                    if (cleanKey === 'codecs') acc.codecs = cleanValue;
+                    if (cleanKey === 'video') acc.name = cleanValue;
+
+                    return acc;
+                }, {});
+        }
+        else if (line.startsWith('https://')) {
+            sources.push({
+                ...hsl,
+                url: line.trim(),
+                name: hsl.name || hsl.resolution || 'Default',
+                width: hsl.width,
+                height: hsl.height,
+                codecs: hsl.codecs,
+                bitrate: hsl.bandwidth
+            });
+            hsl = {};
+        }
+    }
+
+    return sources.sort((a, b) => b.bitrate - a.bitrate);
+}
+
+function getQualitySources(sources) {
+    return sources.map(source => {
+        try {
+            return new HLSSource({
+                width: source.width || 0,
+                height: source.height || 0,
+                codec: source.codecs || '',
+                name: source.name,
+                bitrate: source.bandwidth || 0,
+                url: getSignedPlaylistUrl(source.url)
+            });
+        } catch (error) {
+            console.warn(`Error processing livestream (Source: ${source.name}): ${error.message}`);
+            return null;
+        }
+    }).filter(source => source !== null);
+}
+
+function getSignedPlaylistUrl(initialUrl) {
+    const signResponse = http.POST(
+        HLS_SIGN,
+        JSON.stringify({ playlisturi: initialUrl }),
+        {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+            DNT: '1',
+            Origin: 'https://dlive.tv',
+            Referer: 'https://dlive.tv/'
+        }
+    );
+
+    if (signResponse.code !== 200) {
+        throw new Error(`Error signing livestream: ${signResponse.body}`);
+    }
+
+    return signResponse.body;
 }
 
 log("LOADED");
