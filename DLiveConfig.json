@@ -1,13 +1,13 @@
 {
-  "name": "DLive",
+  "name": "DLive (Experimental)",
   "description": "A decentralized live streaming platform.",
   "author": "AlexisBlade2001",
   "authorUrl": "https://github.com/AlexisBlade2001",
   "platformUrl": "https://dlive.tv",
-  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/main/DLiveConfig.json",
+  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/experimental/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
-  "version": 4,
+  "version": 5,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
   "scriptSignature": "QAb9dgCzERL26QmGj9ICjp9MNmbzIvom2leC2VJBaMPQ2eF+CLBpu0VtVJuw5xQVZzGybBjpt6lJaH0HI2Nu4xqLQuk44ss5jGcv1na9TI46ooMJ59YFyEDGYjwkEsMxdM18ChEvY/dlDJMv5KQG0R013HVfwyL/tqIcYqpFG/n/l4fPzZ7ZtLFLPKXkIkHg7CWL3aXDQ7M1v2hwNRc7aUzQ0HTxZkNBOI7x3UKRuDbR0KrSeEHh4gjr+kDJHphsApuz2ncP44EvHLS/K8K7EpkNFLfgxYdhfrcvFAJbeti1zjYLuBWrT+oaWv0IWhlIRMUMftpSB056a374dY/WqztuoSR72vTbIaLHveObEvBJ0EmScotkkosXQpPNKyisxyCKWiw28Xg/eF6pYOxIv1zobhxIIutRP9+nvd4zYGXIXg5rU3323FMkPKUDFReJM+bGgmBtmvXkBLGBPFqhxVveKXrs0jkaUP0S582HbLlUfbLXi8laZtfxGgroeEPYVmJg3b0lUV/8V6yzGzyO6kVDcgGVs9fsKX9qtI1weMH9eyJWBECaCVG3Yqvk8Sr5sPCwjvOp+opyB9cd6WewPSTunNQOBPiiYk6Tg+MWL6fxYhiYqQSULuopyb2Vn0K27ez7gYZ+XfY7uR8QuiWHKKoopePG0L3k8kqYeURBqYQ=",
@@ -119,6 +119,9 @@
     }
   ],
   "changelog": {
+    "5": [
+      "Feature: Livestreams are working now"
+    ],
     "4": [
       "Fix: Banner and Description for Channels",
       "Fix: Quality Options for Replays",
