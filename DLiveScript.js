@@ -20,13 +20,13 @@ const URL_SUBSCRIPTIONS = `${URL_BASE}/s/mysubscriptions`;
 
 const PLATFORM = "DLive";
 
-const REGEX_USER = new RegExp("^https?:\\/\\/dlive\\.tv\\/([\\w-]+)(\\/.*)?$", "i");
-const REGEX_USER_OLD = new RegExp("^https?:\\/\\/dlive\\.tv\\/([\\w-]+)\\+([\\w-]+)(\\/.*)?$", "i");
-const REGEX_CHANNEL_USER = new RegExp("^https?:\\/\\/dlive\\.tv\\/u\\/([\\w-]+)(\\/.*)?$", "i");
-const REGEX_CHANNEL_USER_OLD = new RegExp("^https?:\\/\\/dlive\\.tv\\/u\\/([\\w-]+)\\+([\\w-]+)(\\/.*)?$", "i");
-const REGEX_VOD = new RegExp("^https?:\\/\\/dlive\\.tv\\/p\\/([\\w-]+)\\+([\\w-]+)(\\/.*)?$", "i");
-const REGEX_VIDEO = new RegExp("^https?:\\/\\/dlive\\.tv\\/v\\/([\\w-]+)\\+([\\w-]+)(\\/.*)?$", "i");
-const REGEX_CLIP = new RegExp("^https?:\\/\\/dlive\\.tv\\/clip\\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\\/.*)?$", "i");
+const REGEX_USER = new RegExp("^https?:\\/\\/dlive\\.tv\\/([\\w-]{3,20})(?:[\\/#?]|$)", "i");
+const REGEX_USER_OLD = new RegExp("^https?:\\/\\/dlive\\.tv\\/([\\w-]+)\\+([\\w-]+)(?:[\\/#?]|$)", "i");
+const REGEX_CHANNEL_USER = new RegExp("^https?:\\/\\/dlive\\.tv\\/u\\/([\\w-]{3,20})(?:[\\/#?]|$)", "i");
+const REGEX_CHANNEL_USER_OLD = new RegExp("^https?:\\/\\/dlive\\.tv\\/u\\/([\\w-]+)\\+([\\w-]+)(?:[\\/#?]|$)", "i");
+const REGEX_VOD = new RegExp("^https?:\\/\\/dlive\\.tv\\/p\\/([\\w-]+\\+[\\w-]+)(?:[\\/#?]|$)", "i");
+const REGEX_VIDEO = new RegExp("^https?:\\/\\/dlive\\.tv\\/v\\/([\\w-]+\\+[\\w-]+)(?:[\\/#?]|$)", "i");
+const REGEX_CLIP = new RegExp("^https?:\\/\\/dlive\\.tv\\/clip\\/([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?:[\\/#?]|$)", "i");
 
 var config = {};
 
