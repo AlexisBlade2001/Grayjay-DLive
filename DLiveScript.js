@@ -268,7 +268,17 @@ source.isChannelUrl = function (url) {
      * @returns: boolean
      */
 
-    return REGEX_USER.test(url) || REGEX_USER_OLD.test(url) || REGEX_CHANNEL_USER.test(url) || REGEX_CHANNEL_USER_OLD.test(url);
+    const isClip = REGEX_CLIP.test(url);
+    if (isClip) return false;
+
+    const channelPatterns = [
+        REGEX_USER,
+        REGEX_USER_OLD,
+        REGEX_CHANNEL_USER,
+        REGEX_CHANNEL_USER_OLD
+    ];
+
+    return channelPatterns.some(pattern => pattern.test(url));
 }
 
 source.getChannel = function (url) {
