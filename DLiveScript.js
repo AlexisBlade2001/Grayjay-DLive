@@ -282,15 +282,14 @@ source.isChannelUrl = function (url) {
 }
 
 source.getChannel = function (url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
+    const displayname = getChannelDisplayName(url);
 
     let gql = {
-        variables: {
-            displayname: clean
-        },
         operationName: "UserInfo",
-        query: "query UserInfo( $displayname: String! ) { userByDisplayName( displayname: $displayname ) { id displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } }",
+        variables: {
+            displayname: displayname
+        },
+        query: "query UserInfo( $displayname: String! ) { userByDisplayName( displayname: $displayname ) { id username displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } }",
     }
 
     const results = callGQL(gql);
@@ -488,9 +487,9 @@ source.getSubComments = function (comment, continuationToken = null) {
 
 //Live Chat
 source.getLiveChatWindow = function (url) {
-    const user = url.split('/').pop()
+    const displayname = getChannelDisplayName(url)
     return {
-        url: `${URL_LIVE_CHAT}/${user}/chatroom`,
+        url: `${URL_LIVE_CHAT}/${displayname}/chatroom`,
         removeElements: [".application--wrap > div:first-child"],
         removeElementsInterval: [".chatroom-header"]
         /** Is there any way to modify the next style from #router-view > div
@@ -700,13 +699,12 @@ function getVideoChannelContent(url) {
 }
 
 function getLiveDetails(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
+    const displayname = getChannelDisplayName(url);
 
     let gql = {
         operationName: "LiveDetails",
         variables: {
-            displayname: clean,
+            displayname: displayname,
         },
         query: "query LiveDetails($displayname: String!) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } livestream { id title thumbnailUrl createdAt permlink watchingCount content encryptedStream ageRestriction earnRestriction category { title } language { id backendID language code } } } }",
     }
@@ -743,13 +741,14 @@ function getLiveDetails(url) {
 }
 
 function getReplayDetails(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
+    const match = url.match(REGEX_VOD);
+    if (!match) throw new ScriptException("Invalid URL Replay Format");
+    const permlink = match[1];
 
     let gql = {
         operationName: "ReplayDetails",
         variables: {
-            permlink: clean,
+            permlink: permlink,
         },
         query: "query ReplayDetails($permlink: String!) { pastBroadcastV2(permlink: $permlink) { id title thumbnailUrl creator { id displayname username avatar followers { totalCount } } createdAt permlink length viewCount resolution { resolution url } content ageRestriction category { title } language { id backendID language code } } }",
     }
@@ -790,13 +789,14 @@ function getReplayDetails(url) {
 }
 
 function getVideoDetails(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
+    const match = url.match(REGEX_VIDEO);
+    if (!match) throw new ScriptException("Invalid URL Video Format");
+    const permlink = match[1];
 
     let gql = {
         operationName: "VideoDetails",
         variables: {
-            permlink: clean,
+            permlink: permlink,
         },
         query: "query VideoDetails($permlink: String!) { video(permlink: $permlink) { id title thumbnailUrl creator { id displayname username avatar followers { totalCount } } createdAt permlink length viewCount resolution { resolution url } content ageRestriction category { title } language { id backendID language code } } }",
     }
@@ -840,13 +840,14 @@ function getVideoDetails(url) {
 }
 
 function getClipDetails(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
+    const match = url.match(REGEX_CLIP);
+    if (!match) throw new ScriptException("Invalid URL Clip Format");
+    const clipId = match[1];
 
     let gql = {
         operationName: "ClipView",
         variables: {
-            id: clean,
+            id: clipId,
         },
         query: "query ClipView( $id: String! ) { clip( id: $id ) { id description thumbnailUrl streamer { id displayname username avatar followers { totalCount } } createdAt startTime endTime views clippedBy { id displayname username avatar followers { totalCount } } category { title } language { id backendID language code } url upvotes } }"
     };
@@ -972,6 +973,26 @@ function signURL(url) {
     const results = callGQL(gql);
 
     return results.data.signURLGenerate.url;
+}
+
+function extractIdentifier(url, patterns) {
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) {
+            if (pattern === REGEX_USER_OLD || pattern === REGEX_CHANNEL_USER_OLD) {
+                return match[2];
+            }
+            return match[1];
+        }
+    }
+    return null;
+}
+
+function getChannelDisplayName(url) {
+    const patterns = [REGEX_CHANNEL_USER, REGEX_USER, REGEX_CHANNEL_USER_OLD, REGEX_USER_OLD];
+    const displayname = extractIdentifier(url, patterns);
+    if (!displayname) throw new ScriptException("Invalid URL Channel Format");
+    return displayname;
 }
 
 function getLiveStreamUrl(userName) {
