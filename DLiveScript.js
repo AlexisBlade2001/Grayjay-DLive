@@ -229,34 +229,34 @@ source.searchChannels = function (query, continuationToken) {
     let gql = {
         operationName: "NavSearchResult",
         variables: {
-            text: query,
-            userFirst: 8, // 8 is the default on DLive's website
-            userAfter: null, // "-1" is the proper default
-            categoryFirst: 0
+            string: query,
+            first: 20, // 8 is the default on DLive's website
+            after: continuationToken ?? null, // "-1" is the proper default
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "7e32812db61507392d4b6750bb6fc65cd2ec5cc3c89ffc46036296361f943d5d"
-            }
-        }
+        query: "query NavSearchResult($string: String!, $first: Int, $after: String) { search(text: $string) { users (first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id username displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } } } } }"
     }
 
     const results = callGQL(gql);
 
     // The results (PlatformChannel)
-    const channels = results.data.search.allUsers.list.map(channel =>
+    const channels = results.data?.search?.users?.list.map(channel =>
         new PlatformChannel({
-            id: new PlatformID(PLATFORM, channel.id ?? channel.creator.id, config.id),
-            name: channel.displayname ?? channel.creator.displayname,
-            thumbnail: channel.avatar ?? channel.creator.avatar,
-            subscribers: channel.followers?.totalCount ?? channel.creator?.followers?.totalCount ?? 0,
-            url: `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`,
-            urlAlternatives: [`${URL_BASE}/${channel.displayname ?? channel.creator.displayname}`, `${URL_CHANNEL}/${channel.displayname ?? channel.creator.displayname}`],
+            id: new PlatformID(PLATFORM, channel.username, plugin.config.id),
+            name: channel.displayname,
+            thumbnail: channel.avatar || "",
+            banner: channel.subSetting?.backgroundImage
+                ? channel.subSetting.backgroundImage
+                : channel.offlineImage !== "https://images.prd.dlivecdn.com/offlineimage/video-placeholder.png"
+                    ? channel.offlineImage
+                    : null,
+            subscribers: channel.followers?.totalCount ?? 0,
+            description: channel.about || "", // This is deprecated, some channels have it, Use panels instead?
+            url: `${URL_CHANNEL}/${channel.displayname}`,
+            urlAlternatives: [`${URL_BASE}/${channel.displayname}`, `${URL_CHANNEL}/${channel.displayname}`],    
         })
     );
-    const hasMore = false; // Are there more pages?
-    const context = { query: query, continuationToken: continuationToken }; // Relevant data for the next page
+    const hasMore = results.data?.search?.users?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+    const context = { query: query, continuationToken: results.data?.search?.users?.pageInfo?.endCursor }; // Relevant data for the next page
 
     return new DLiveChannelPager(channels, hasMore, context);
 }
