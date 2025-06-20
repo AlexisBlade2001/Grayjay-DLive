@@ -88,55 +88,52 @@ source.getHome = function (continuationToken) {
      * @AlexisBlade2001: GQL query seems to be broken, I think we have to extract it from the website instead
      * for now, we'll handle this with the query operation... unless it looks broken because of not having a
      * language variable set, if that's the case, I'm dumb for not noticing it
+     * Update Jun 20: so, for one, languageID was indeed needed. but it can show broken results, as in getting duplicated streams
+     * Also we need to fund a way to avoid duplicates... how?
      * @param continuationToken: any?
      * @returns: VideoPager
      */
 
     let gql = {
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "4c51ad0b46e3a3b4b0d6abf87445567122ee85d9b257ecbf8eb1cbe4a45aac8e"
-            }
-        },
         operationName: "HomePageLivestream",
-        variables: {
+        variables:
+        {
             first: 20, // 20 is the default
             after: continuationToken ?? null, // "-1" is the proper initial value, When i was looking in the website, this almost never matched the value it was supposed to be
-            languageID: null, // From GlobalInformation's query - filters homepage with language
-            categoryID: null, // ¿? - Filters homepage with category
-            order: "TRENDING", // I don't know where the filters are
+            languageID: 0, // From GlobalInformation's query - filters homepage with language
+            order: "TRENDING", // NEW, TRENDING (Default), MIX
             showNSFW: false, // This is called X-Tag in the web/app
-            showMatureContent: false, // This is called Mature Tag in the web/app - I don't get the differences between this and X-Tags
-            userLanguageCode: null // Doesn't seem to affect search, string format is "en", not "es-CL", check GlobalInformation
-        }
+            showMatureContent: true, // This is called Mature Tag in the web/app - I don't get the differences between this and X-Tags
+        },
+        query: "query HomePageLivestream($first: Int, $after: String, $languageID: Int, $showMatureContent: Boolean, $showNSFW: Boolean, $order: LivestreamSortOrder) { livestreams(input: {first: $first, after: $after, languageID: $languageID, showMatureContent: $showMatureContent, showNSFW: $showNSFW, order: $order }) { pageInfo { startCursor endCursor hasNextPage } list { id title thumbnailUrl creator { id username displayname avatar followers { totalCount } } createdAt permlink watchingCount } } }"
     };
 
     const results = callGQL(gql);
 
     // The results (PlatformVideo)
-    const videos = results.data.livestreams.list.map(video =>
+    const videos = results.data?.livestreams?.list.map(video =>
         new PlatformVideo({
-            id: new PlatformID(PLATFORM, video.id, plugin.config.id),
+            id: new PlatformID(PLATFORM, video.permlink, plugin.config.id),
             name: video.title,
             thumbnails: new Thumbnails([new Thumbnail(video.thumbnailUrl)]),
             author: new PlatformAuthorLink(
-                new PlatformID(PLATFORM, video.creator.id, config.id),
-                video.creator.displayname,
-                `${URL_BASE}/${video.creator.displayname}`,
-                video.creator.avatar
-                // video.creator.followers.totalCount
+                new PlatformID(PLATFORM, video.creator?.username, plugin.config.id),
+                video.creator?.displayname,
+                `${URL_CHANNEL}/${video.creator?.displayname}`,
+                video.creator?.avatar,
+                video.creator?.followers?.totalCount
             ),
             uploadDate: parseInt(new Date().getTime() / 1000),
-            shareUrl: `${URL_BASE}/${video.creator.displayname}`,
-            duration: 0,
-            viewCount: video.watchingCount,
-            url: `${URL_BASE}/${video.creator.displayname}`,
+            viewCount: parseFloat(video.watchingCount),
+            url: `${URL_BASE}/${video.creator?.displayname}`,
+
+            shareUrl: `${URL_BASE}/${video.creator?.displayname}`, // ?ref=username
+            
             isLive: true,
         })
     );
-    const hasMore = /** data.livestreams.pageInfo.endCursor.hasNextPage ?? */ false; // Are there more pages?
-    const context = { continuationToken: results.data.livestreams.pageInfo.endCursor.endCursor }; // Relevant data for the next page
+    const hasMore = results.data?.livestreams?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+    const context = { continuationToken: results.data?.livestreams?.pageInfo?.endCursor }; // Relevant data for the next page
 
     return new DLiveHomeVideoPager(videos, hasMore, context);
 }
