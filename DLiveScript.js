@@ -287,17 +287,19 @@ source.getChannel = function (url) {
 
     const channel = results.data.userByDisplayName;
 
+    if (!channel) throw new ScriptException(`No channel data for: ${url}`);
+
     return new PlatformChannel({
-        id: new PlatformID(PLATFORM, channel.id, config.id),
+        id: new PlatformID(PLATFORM, channel.username, plugin.config.id),
         name: channel.displayname,
-        thumbnail: channel.avatar,
+        thumbnail: channel.avatar || "",
         banner: channel.subSetting?.backgroundImage
             ? channel.subSetting.backgroundImage
             : channel.offlineImage !== "https://images.prd.dlivecdn.com/offlineimage/video-placeholder.png"
                 ? channel.offlineImage
                 : null,
-        subscribers: channel.followers?.totalCount,
-        description: channel.about, // This is deprecated, some channels have it, Use panels instead? 
+        subscribers: channel.followers?.totalCount || 0,
+        description: channel.about || "", // This is deprecated, some channels have it, Use panels instead?
         url: `${URL_CHANNEL}/${channel.displayname}`,
         urlAlternatives: [`${URL_BASE}/${channel.displayname}`, `${URL_CHANNEL}/${channel.displayname}`],
     });
