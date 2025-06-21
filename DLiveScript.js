@@ -362,52 +362,97 @@ source.getComments = function (url, continuationToken) {
      */
 
     // Verify Content URL
-    if (!url.includes('/v/') && !url.includes('/p/')) {
-        return new DLiveCommentPager([], false, {});
+    if (url.includes("/v/") || url.includes("/p/")) {
+        const permlink = url.match(REGEX_VIDEO)?.[1] || url.match(REGEX_VOD)?.[1];
+        if (!permlink) throw new Error("Invalid URL Format");
+
+        let gql = {
+            operationName: "ReplyComments",
+            variables: {
+                permlink: permlink,
+                first: 20, // 20 is the default
+                after: continuationToken ?? null,
+            },
+            query: "query ReplyComments($permlink: String!, $first: Int, $after: String) { comments(permlink: $permlink, first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { author { id username displayname avatar followers { totalCount } } content upvotes downvotes createdAt commentCount permlink } } }",
+        };
+
+        const results = callGQL(gql);
+
+        if (!Array.isArray(results.data?.comments?.list)) return new DLiveCommentPager([], false, {});
+
+        // The results (Comment)
+        const comments = results.data?.comments?.list.map(
+            (comment) =>
+                new PlatformComment({
+                    contextUrl: url,
+                    author: new PlatformAuthorLink(
+                        new PlatformID(PLATFORM, comment.author.username, plugin.config.id),
+                        comment.author.displayname,
+                        `${URL_CHANNEL}/${comment.author.displayname}`,
+                        comment.author.avatar,
+                        comment.author.followers.totalCount
+                    ),
+                    message: comment.content,
+                    rating: new RatingLikesDislikes(comment.upvotes, comment.downvotes),
+                    date: parseInt(comment.createdAt) / 1000,
+                    replyCount: comment.commentCount,
+                    context: { permlink: comment.permlink },
+                })
+        );
+
+        const hasMore = results.data?.comments?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+        const context = { url: url, continuationToken: results.data?.comments?.pageInfo?.endCursor, }; // Relevant data for the next page
+
+        return new DLiveCommentPager(comments, hasMore, context);
     }
 
-    let gql = {
-        operationName: "ReplyComments",
-        variables: {
-            permlink: url.split('/').pop(),
-            first: 20, // 20 is the default
-            after: continuationToken ?? null
-        },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "b77aa980fe22c7fe3dbb71cc0131eb077fab62dc2c5d0d74b1f9a07a766c1243"
-            }
-        },
-        query: "query ReplyComments($permlink: String!, $first: Int, $after: String) {\n  comments(permlink: $permlink, first: $first, after: $after) {\n    ...VVideoPBCommentFrag\n    __typename\n  }\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n"
+    if (url.includes("/clip/")) {
+        const clipId = url.match(REGEX_CLIP)?.[1];
+        if (!clipId) throw new Error("Invalid URL Format");
+
+        let gql = {
+            operationName: "ClipComment",
+            variables: {
+                id: clipId,
+                first: 20, // 20 is the default
+                after: continuationToken ?? null,
+                option: "Latest", // "MostLike"
+            },
+            query:
+                "query ClipComment( $id: String!, $first: Int, $after: String, $option: ClipCommentOrderOption ) { clip(id: $id) { clipComments(first: $first, after: $after, option: $option) { pageInfo { endCursor hasNextPage } list { id author { username displayname avatar followers { totalCount } } content likeCount createdAt hasReplies } } } }",
+        };
+
+        const results = callGQL(gql);
+
+        if (!Array.isArray(results.data?.clip?.clipComments?.list)) return new DLiveCommentPager([], false, {});
+
+        // The results (Comment)
+        const comments = results.data?.clip?.clipComments?.list.map(
+            (comment) =>
+                new PlatformComment({
+                    contextUrl: url,
+                    author: new PlatformAuthorLink(
+                        new PlatformID(PLATFORM, comment.author.username, plugin.config.id),
+                        comment.author.displayname,
+                        `${URL_CHANNEL}/${comment.author.displayname}`,
+                        comment.author.avatar,
+                        comment.author.followers.totalCount
+                    ),
+                    message: comment.content,
+                    rating: new RatingLikes(comment.likeCount),
+                    date: parseInt(comment.createdAt) / 1000,
+                    replyCount: comment.hasReplies ? 1 : 0,
+                    context: { id: comment.id },
+                })
+        );
+
+        const hasMore = results.data?.clip?.clipComments?.pageInfo?.hasMore ?? false; // Are there more pages?
+        const context = { url, continuationToken: results.data?.clip?.clipComments?.pageInfo?.endCursor, }; // Relevant data for the next page
+
+        return new DLiveCommentPager(comments, hasMore, context);
     }
 
-    const results = callGQL(gql);
-
-    if (!Array.isArray(results.data.comments.list)) {
-        return new DLiveCommentPager([], false, {});
-    }
-
-    // The results (Comment)
-    const comments = results.data.comments.list.map(comment => new PlatformComment({
-        contextUrl: url,
-        author: new PlatformAuthorLink(
-            new PlatformID(PLATFORM, `user:${comment.permlink.split('+')[0]}`, plugin.config.id),
-            comment.author.displayname,
-            `${URL_CHANNEL}/${comment.author.displayname}`,
-            comment.author.avatar
-        ),
-        message: comment.content,
-        rating: new RatingLikesDislikes(comment.upvotes, comment.downvotes),
-        date: parseInt(comment.createdAt, 10) / 1000,
-        replyCount: comment.commentCount,
-        context: { permlink: comment.permlink }
-    }));
-
-    const hasMore = results.data.comments.pageInfo.hasNextPage ?? false // Are there more pages?
-    const context = { url: url, continuationToken: results.data.comments.pageInfo.endCursor }; // Relevant data for the next page
-
-    return new DLiveCommentPager(comments, hasMore, context);
+    return new DLiveCommentPager([], false, {});
 }
 
 source.getSubComments = function (comment, continuationToken = null) {
