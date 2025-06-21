@@ -848,11 +848,11 @@ function getClipDetails(url) {
     const clip = results.data?.clip;
 
     return new PlatformVideoDetails({
-        id: new PlatformID(PLATFORM, clip.id, config.id),
+        id: new PlatformID(PLATFORM, clip.id, plugin.config.id),
         name: clip.description,
         thumbnails: new Thumbnails([new Thumbnail(clip.thumbnailUrl)]),
         author: new PlatformAuthorLink(
-            new PlatformID(PLATFORM, clip.streamer.id, config.id),
+            new PlatformID(PLATFORM, clip.streamer.username, plugin.config.id),
             clip.streamer.displayname,
             `${URL_CHANNEL}/${clip.streamer.displayname}`,
             clip.streamer.avatar,
@@ -866,7 +866,7 @@ function getClipDetails(url) {
         duration: 0,
         viewCount: parseFloat(clip.views),
 
-        description: `Clipped by: ${clip.clippedBy.displayname}`,
+        description: `${clip.category.title}\nClipped by ${clip.clippedBy.displayname}`,
         video: new VideoSourceDescriptor([new VideoUrlSource({ url: clip.url })]),
 
         rating: new RatingLikes(clip.upvotes),
