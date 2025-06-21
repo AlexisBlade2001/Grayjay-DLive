@@ -455,71 +455,137 @@ source.getComments = function (url, continuationToken) {
     return new DLiveCommentPager([], false, {});
 }
 
-source.getSubComments = function (comment, continuationToken = null) {
+source.getSubComments = function (comment, continuationToken) {
     /**
      * @param comment: Comment
      * @returns: DLiveCommentPager
      */
 
-    if (typeof comment === 'string') {
-        comment = JSON.parse(comment);
-    }
+    if (typeof comment === "string") comment = JSON.parse(comment);
 
     if (!comment.replyCount || comment.replyCount === 0) {
         return new DLiveSubCommentPager([], false, {});
     }
 
-    const gql = {
-        operationName: "ReplyComments",
-        variables: {
-            permlink: comment.context.permlink,
-            first: 20,
-            after: continuationToken,
-        },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "b77aa980fe22c7fe3dbb71cc0131eb077fab62dc2c5d0d74b1f9a07a766c1243",
+    // Check comment type (video/replay or clip)
+    const isVideoComment = comment.context?.permlink;
+    const isClipComment = comment.context?.id;
+
+    // Video subcomments
+    if (isVideoComment) {
+        const gql = {
+            operationName: "ReplyComments",
+            variables: {
+                permlink: comment.context.permlink,
+                first: 20,
+                after: continuationToken ?? null,
             },
-        },
-        query: "query ReplyComments($permlink: String!, $first: Int, $after: String) {\n  comments(permlink: $permlink, first: $first, after: $after) {\n    ...VVideoPBCommentFrag\n    __typename\n  }\n}\n\nfragment VVideoPBCommentFrag on CommentConnection {\n  totalCount\n  pageInfo {\n    endCursor\n    hasNextPage\n    __typename\n  }\n  list {\n    ...VVideoPBCommentItemFrag\n    __typename\n  }\n  __typename\n}\n\nfragment VVideoPBCommentItemFrag on Comment {\n  upvotes\n  downvotes\n  author {\n    displayname\n    avatar\n    __typename\n  }\n  content\n  createdAt\n  myVote\n  commentCount\n  permlink\n  __typename\n}\n",
-    };
+            query:
+                "query ReplyComments($permlink: String!, $first: Int, $after: String) { comments(permlink: $permlink, first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { author { id username displayname avatar followers { totalCount } } content upvotes downvotes createdAt commentCount permlink } } }",
+        };
 
-    const results = callGQL(gql);
+        const results = callGQL(gql);
 
-    const subComments = results.data.comments.list.map((subComment) => {
-        return new PlatformComment({
-            contextUrl: comment.contextUrl,
-            author: new PlatformAuthorLink(
-                new PlatformID(
-                    PLATFORM,
-                    `user:${subComment.permlink.split("+")[0]}`,
-                    plugin.config.id
+        if (!Array.isArray(results.data?.comments?.list))
+            return new DLiveCommentPager([], false, {});
+
+        // The results (SubComment)
+        const subComments = results.data?.comments?.list.map((subComment) => {
+            new PlatformComment({
+                contextUrl: comment.contextUrl,
+                author: new PlatformAuthorLink(
+                    new PlatformID(
+                        PLATFORM,
+                        subComment.author.username,
+                        plugin.config.id
+                    ),
+                    subComment.author.displayname,
+                    `${URL_CHANNEL}/${subComment.author.displayname}`,
+                    subComment.author.avatar,
+                    subComment.author.followers.totalCount
                 ),
-                subComment.author.displayname,
-                `${URL_CHANNEL}/${subComment.author.displayname}`,
-                subComment.author.avatar
-            ),
-            message: subComment.content,
-            rating: new RatingLikesDislikes(subComment.upvotes, subComment.downvotes),
-            date: parseInt(subComment.createdAt, 10) / 1000,
-            replyCount: subComment.commentCount,
-            context: {
-                permlink: subComment.permlink
-            },
+                message: subComment.content,
+                rating: new RatingLikesDislikes(
+                    subComment.upvotes,
+                    subComment.downvotes
+                ),
+                date: parseInt(subComment.createdAt, 10) / 1000,
+                replyCount: subComment.commentCount,
+                context: {
+                    permlink: subComment.permlink,
+                },
+            });
         });
-    });
 
-    const hasMore = results.data.comments.pageInfo.hasNextPage ?? false;
-    const context = {
-        parentComment: comment,
-        permlink: comment.context.permlink,
-        continuationToken: results.data.comments.pageInfo.endCursor,
-        contextUrl: comment.contextUrl
-    };
+        const hasMore = results.data?.comments?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+        const context = {
+            parentComment: comment,
+            permlink: comment.context?.permlink,
+            continuationToken: results.data?.comments?.pageInfo?.endCursor,
+            contextUrl: comment.contextUrl,
+        }; // Relevant data for the next page
 
-    return new DLiveSubCommentPager(subComments, hasMore, context);
-}
+        return new DLiveSubCommentPager(subComments, hasMore, context);
+    }
+    // Clip subcomments
+    else if (isClipComment) {
+        const gql = {
+            operationName: "ClipCommentReplies",
+            variables: {
+                id: comment.context.id,
+                first: 20,
+                after: continuationToken ?? null,
+            },
+            query:
+                "query ClipCommentReplies($id: String!, $first: Int, $after: String) { clipCommentReplies(id: $id, first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id author { username displayname avatar followers { totalCount } } content replyTo { displayname } liked createdAt } } }",
+        };
+
+        const results = callGQL(gql);
+
+        if (!Array.isArray(results.data?.clipCommentReplies?.list))
+            return new DLiveCommentPager([], false, {});
+
+        // The results (SubComment)
+        const subComments = results.data?.clipCommentReplies?.list.map(
+            (subComment) => {
+                new PlatformComment({
+                    contextUrl: comment.contextUrl,
+                    author: new PlatformAuthorLink(
+                        new PlatformID(
+                            PLATFORM,
+                            subComment.author.username,
+                            plugin.config.id
+                        ),
+                        subComment.author.displayname,
+                        `${URL_CHANNEL}/${subComment.author.displayname}`,
+                        subComment.author.avatar,
+                        subComment.author.followers.totalCount
+                    ),
+                    message: subComment.content,
+                    rating: new RatingLikes(subComment.likeCount),
+                    date: parseInt(subComment.createdAt, 10) / 1000,
+                    replyCount: 0,
+                    context: {
+                        id: subComment.id,
+                    },
+                });
+            }
+        );
+
+        const hasMore =
+            results.data?.clipCommentReplies?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+        const context = {
+            parentComment: comment,
+            id: comment.context?.id,
+            continuationToken: results.data?.clipCommentReplies?.pageInfo?.endCursor,
+            contextUrl: comment.contextUrl,
+        }; // Relevant data for the next page
+
+        return new DLiveSubCommentPager(subComments, hasMore, context);
+    }
+
+    return new DLiveSubCommentPager([], false, {});
+};
 
 //Live Chat
 source.getLiveChatWindow = function (url) {
