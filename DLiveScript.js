@@ -808,11 +808,11 @@ function getVideoDetails(url) {
         })
     );
     return new PlatformVideoDetails({
-        id: new PlatformID(PLATFORM, md.id, config.id),
+        id: new PlatformID(PLATFORM, md.permlink, plugin.config.id),
         name: md.title,
         thumbnails: new Thumbnails([new Thumbnail(md.thumbnailUrl)]),
         author: new PlatformAuthorLink(
-            new PlatformID(PLATFORM, md.creator.id, config.id),
+            new PlatformID(PLATFORM, md.creator.username, plugin.config.id),
             md.creator.displayname,
             `${URL_CHANNEL}/${md.creator.displayname}`,
             md.creator.avatar,
