@@ -959,17 +959,10 @@ function signURL(url) {
     let gql = {
         operationName: "GenerateSignURL",
         variables: {
-            hash: url.replace(/\+/g, '%2B')
+            hash: url.replace(/\+/g, "%2B"),
         },
-        extensions: {
-            persistedQuery: {
-                version: 1,
-                sha256Hash: "c6cb037b35d34a66573c65f4fb9c0ee81eaa58aaffe26783891ff085320d51c0"
-            }
-        },
-        /** Query is needed to work properly */
-        query: "mutation GenerateSignURL($hash: String!) {\n  signURLGenerate(hash: $hash) {\n    url\n    err {\n      code\n      __typename\n    }\n    __typename\n  }\n}\n"
-    }
+        query: "mutation GenerateSignURL($hash: String!) { signURLGenerate(hash: $hash) { url err { code } } }",
+    };
     const results = callGQL(gql);
 
     return results.data.signURLGenerate.url;
