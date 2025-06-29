@@ -312,7 +312,7 @@ source.getChannel = function (url) {
     });
 }
 
-source.getChannelContents = function (url, type, order, filters, continuationToken) {
+source.getChannelContents = function (url, type, order, filters, continuationToken = null) {
     /**
      * @param url: string
      * @param type: string
@@ -321,20 +321,45 @@ source.getChannelContents = function (url, type, order, filters, continuationTok
      * @param continuationToken: any?
      * @returns: VideoPager
      */
+    const displayname = getChannelDisplayName(url);
 
-    const live = getLiveChannelContent(url) || [];; // The results (PlatformVideo)
-    const replays = getReplayChannelContent(url) || [];; // The results (PlatformVideo)
-    const videos = getVideoChannelContent(url) || [];; // The results (PlatformVideo)
+    let live = [];
+    let replays = [];
+    let videos = [];
 
-    /**
-     * It should be a Individual Pager for their own type of content
-     * except for the livestream content... thing is, i dont understand how to pass those  
-     */
+    let token = continuationToken || {
+        isLiveFetched: false,
+        displayname: displayname,
+        replayAfter: null,
+        videoAfter: null,
+        replayHasMore: true,
+        videoHasMore: true
+    };
 
-    const results = [...live, ...replays, ...videos];
-    const hasMore = false; // Are there more pages?
+    if (!token.isLiveFetched) {
+        live = getLiveChannelContent(displayname) || [];
+        token.isLiveFetched = true;
+    }
 
-    return new DLiveChannelVideoPager(results, hasMore);
+    if (token.replayHasMore) {
+        const replayResult = getReplayChannelContent(displayname, token.replayAfter);
+        replays = replayResult.content || [];
+        token.replayAfter = replayResult.after;
+        token.replayHasMore = replayResult.hasMore;
+    }
+
+    if (token.videoHasMore) {
+        const videoResult = getVideoChannelContent(displayname, token.videoAfter);
+        videos = videoResult.content || [];
+        token.videoAfter = videoResult.after;
+        token.videoHasMore = videoResult.hasMore;
+    }
+
+    const results = [...live, ...replays, ...videos]; // The results (PlatformVideo)
+    const hasMore = token.replayHasMore || token.videoHasMore; // Are there more pages?
+    const context = {url: url, type: type, order: order, filters: filters, continuationToken: token}; // Relevant data for the next page
+
+    return new DLiveChannelVideoPager(results, hasMore, context);
 }
 
 source.isContentDetailsUrl = function (url) {
@@ -575,14 +600,11 @@ class DLiveChannelVideoPager extends VideoPager {
     }
 }
 
-function getLiveChannelContent(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
-
+function getLiveChannelContent(displayname) {
     let gql = {
         operationName: "LiveQuery",
         variables: {
-            displayname: clean
+            displayname: displayname
         },
         query: "query LiveQuery($displayname: String!) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } livestream { id title thumbnailUrl createdAt permlink watchingCount } } }",
     }
@@ -612,17 +634,16 @@ function getLiveChannelContent(url) {
         isLive: true,
     })];
 
-    return metadata;
+    return metadata || [];
 }
 
-function getReplayChannelContent(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
-
+function getReplayChannelContent(displayname, continuationToken) {
     let gql = {
         operationName: "ReplayQuery",
         variables: {
-            displayname: clean,
+            displayname: displayname,
+            first: 10,
+            after: continuationToken || null
         },
         query: "query ReplayQuery($displayname: String!, $after: String, $first: Int) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount } pastBroadcastsV2(first: $first, after: $after) { pageInfo { ...PageInfoFragment } list { ...ReplayFragment } } } } fragment PageInfoFragment on PageInfo { endCursor hasNextPage } fragment ReplayFragment on PastBroadcast { id title thumbnailUrl createdAt permlink length viewCount }",
     }
@@ -653,17 +674,21 @@ function getReplayChannelContent(url) {
             viewCount: parseFloat(replay.viewCount),
         })
     );
-    return replays;
+  
+    return {
+        content: replays,
+        hasMore: results.data.userByDisplayName.pastBroadcastsV2.pageInfo.hasNextPage,
+        after: results.data.userByDisplayName.pastBroadcastsV2.pageInfo.endCursor
+    };
 }
 
-function getVideoChannelContent(url) {
-    const raw = url.split('/').pop();
-    const clean = raw.split('?')[0];
-
+function getVideoChannelContent(displayname, continuationToken) {
     let gql = {
         operationName: "VideoQuery",
         variables: {
-            displayname: clean,
+            displayname: displayname,
+            first: 10,
+            after: continuationToken || null
         },
         query: "query VideoQuery( $displayname: String! $sortedBy: VideoSortOrder $first: Int $after: String ) { userByDisplayName(displayname: $displayname) { id displayname username avatar followers { totalCount }  videos(sortedBy: $sortedBy, first: $first, after: $after) { pageInfo {  ...PageInfoFragment } list {  ...VideoFragment } } } } fragment PageInfoFragment on PageInfo { endCursor hasNextPage } fragment VideoFragment on Video { id title thumbnailUrl createdAt permlink length viewCount } ",
     }
@@ -695,7 +720,11 @@ function getVideoChannelContent(url) {
         })
     );
 
-    return videos;
+   return {
+      content: videos,
+      hasMore: results.data.userByDisplayName.videos.pageInfo.hasNextPage,
+      after: results.data.userByDisplayName.videos.pageInfo.endCursor
+    };
 }
 
 function getLiveDetails(url) {
