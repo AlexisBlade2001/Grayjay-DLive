@@ -4,10 +4,10 @@
   "author": "AlexisBlade2001",
   "authorUrl": "https://github.com/AlexisBlade2001",
   "platformUrl": "https://dlive.tv",
-  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/main/DLiveConfig.json",
+  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/experimental/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
-  "version": 5,
+  "version": 6,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
   "scriptSignature": "oEfb47yZmYLAMUvcB3XxIvrwEf0J/O3+DaTwV8X2pDWMgck4VrbSHXJuBmZQt4Ovc8rTSct+RF2YvGIu0psdekjbdOsCrzEAhZxNq/Vw4ESt3net/MB7oWBRqeeK/IGhu+UhCPs4ZbjHuJJR95sBbv6rCNKqlgSBIIdCKxZZThPAyFfn0tdAQwNHebg5oy4Q1cQ/CaBgXR66Wfk4ZbUcoOqYxoeQiOKV3uWwF/U6a4DzkH7VQ3YDE6HU19Fki1xrCU4J2RPFt3Nk4WdGi48LYfEV9iHn5WYq7+Iny+cgTw7DtvFtquDimZGRDaK2HqgCT+kR0r7S44aRssITfkL8jTnNPhUKquBs9htWUiZCe0UZOHmKIN1umGqUwyCyGc5xXhYM2dNqABFxjGf/MSkfI34iY/VRfv5B1i5tuXTDLqHYQbp5A0mWP6iV9byOadb1wyx0aZSyz1z789E03PhvmVrb1P+OHbeTxdS6ekcICmqpPeutRBRHFx0nd9NtB4JMOA3LwBHv24n1faiFqhTdfubMHJmL4FPG3Vl6SKWsxFDNodG1kJdT/DmNLTbGwj3MknsQgkQAGqR1IsZgLqU2eYDEC8hKI/03L2K1A+XeRGs5I+w+cQvt2DgEMHS7vCK8vrtWbpT+2+uyZZOxT+L4DKM7ufw9LER7k419g8W1RVw=",
@@ -119,8 +119,17 @@
     }
   ],
   "changelog": {
+    "6":  [
+      "Refactor: URL Regexes",
+      "Refactor: Clean Queries",
+      "Fix: Identifiers for Channels and Contents",
+      "Fix: Channel Searching",
+      "Feature: Added Clip Comments (and Subcomments) support",
+      "Feature: Homepage can now load more content",
+      "Feature: Channels can now load more content"
+    ],
     "5": [
-      "Feat: Livestreams are working now"
+      "Feature:  Livestreams are working now"
     ],
     "4": [
       "Fix: Banner and Description for Channels",
