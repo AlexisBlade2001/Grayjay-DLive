@@ -79,7 +79,8 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
      - [ ] Duration
      - [x] View Count
      - [x] Video Sources
-     - [ ] Comments
+     - [x] Comments
+       - [x] Subcomments
      - [x] Rating
  - [ ] Authentication
    - [ ] Import Following
@@ -94,9 +95,19 @@ Edit: There's a Reward system on DLive that comes in a chest, this chest gives l
 - [ ] Import following list (can it also be Subscriptions?)
 - [ ] Fix Captcha
 - [ ] Fix Pagers
+  - [x] Homepage
+  - [ ] Search
+    - [ ] Content
+    - [x] Channels
+  - [ ] Channel Content
+    - [ ] Clips
+    - [x] Replays
+    - [x] Videos
+  - [x] Comments
+    - [x] Subcomments
 - [ ] Fix Authentication
 - [ ] Fix Live Chat Webview
-- [ ] Fix Video resolution listing
-- [ ] Fix Replay resolution listing
+- [x] Fix Video resolution listing
+- [x] Fix Replay resolution listing
 - [x] Fix Livestream VideoSource
 - and more...
