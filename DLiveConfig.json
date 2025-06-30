@@ -10,7 +10,7 @@
   "version": 6,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
-  "scriptSignature": "oEfb47yZmYLAMUvcB3XxIvrwEf0J/O3+DaTwV8X2pDWMgck4VrbSHXJuBmZQt4Ovc8rTSct+RF2YvGIu0psdekjbdOsCrzEAhZxNq/Vw4ESt3net/MB7oWBRqeeK/IGhu+UhCPs4ZbjHuJJR95sBbv6rCNKqlgSBIIdCKxZZThPAyFfn0tdAQwNHebg5oy4Q1cQ/CaBgXR66Wfk4ZbUcoOqYxoeQiOKV3uWwF/U6a4DzkH7VQ3YDE6HU19Fki1xrCU4J2RPFt3Nk4WdGi48LYfEV9iHn5WYq7+Iny+cgTw7DtvFtquDimZGRDaK2HqgCT+kR0r7S44aRssITfkL8jTnNPhUKquBs9htWUiZCe0UZOHmKIN1umGqUwyCyGc5xXhYM2dNqABFxjGf/MSkfI34iY/VRfv5B1i5tuXTDLqHYQbp5A0mWP6iV9byOadb1wyx0aZSyz1z789E03PhvmVrb1P+OHbeTxdS6ekcICmqpPeutRBRHFx0nd9NtB4JMOA3LwBHv24n1faiFqhTdfubMHJmL4FPG3Vl6SKWsxFDNodG1kJdT/DmNLTbGwj3MknsQgkQAGqR1IsZgLqU2eYDEC8hKI/03L2K1A+XeRGs5I+w+cQvt2DgEMHS7vCK8vrtWbpT+2+uyZZOxT+L4DKM7ufw9LER7k419g8W1RVw=",
+  "scriptSignature": "Wdu11+CEkSOAPQEqg6M9fXj7DqG5zxABj9wNLzlRSshBbXX7uzd7sBljMGm9ROdirhkfGuJ3givg+N8I+dfkgFzWTUhpg1DsquV/XRLqbASBr1gCSi6TFNO6XB33mgKkITx3RtNVIT6D/PEqHVMuU2Re1PKNj4lLNMGPdjjWj9oyiQmwozuDvBx96zp+9UQj7c0GZJgVC2c4mDT6EiwVw431yG4axgOiu78E0/CeEVwIyLpm4kwWz8rMLFgOtc7pJ2wgbqyvz6J8LfyDuyq3ai5vuP4odUD+cTlJqlRwG/FsdIZ214itpcTnCQGOvNPvl3fTJgaVMUc4UHAqJNtLvcFVJV6qTcKkpQGx36DMAVXaKVWrmiS+oAj4uZ4Db/bXqCx/rQ3fsrPLPhWLfA51ZdtMMmtNsaNw0WjwDqg3heRu3460HHi83EtWJala5Sl8x6YxoL3/jwbzgqZHzrMrVvuj5ZjTLsUJM1FvDeHcyNu3o9tWMC1Qk7gPo6V7OBpzeAqyTU/wVNiYmVZ/F9t4BZo7PBLTyhejc5JEQUSyboGefQzJDpgsCSPLwiqgOZfuzG4FZlrmJkJhVDv7udBKscgG6Bfw26dGr0FYr3UghVgN65qF4eJcH8ruRpvwcK/x/Be3xkT9rAm8Kc3eoMCRG54V6DeVTrv5ES4ElMzc5nM=",
   "scriptPublicKey": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAr63Yf0gjJG8rV9IhtUQgxzryQCtacKfdaErLBC4sOhcnHEqWYJoAHGytGggRSyuGZoJFX2Ovd/8bH0YRT1e1oWMgSZFHQ0k3UE94G2Jw1jmmFvZEaMVxDW7RLkkvqYlXBNDLdkxfbyZepKV5mM4Fd5kbueAdfWdhsl5FhlqHCH10kudewcFq4WBTwQW1chsdkI0Iqrgwqzs5vH5cpphxzXUb+V6rtOUystpFwsEXb6m1Kzl0Uy/9AWTdT9JJJ7H88ycO6d6xX9UUjOXCwMWHxPcZ6UVPN2Plr8UBTJvF0uaYkDhNn0rzEe7NiJ8gUmrT0UJB2E5cYv4I4eTGp6RTwKe7UVCGEo8S7vQ0yPjxk8+dta+V6ECvg7VV1Ic00dfYqPsWPsZJ/xkJLeXIeXhjDNLm0pebr6W6bXkVPvS9PcYMoId+YpghojnPnzo/vmAIo4aS90G1zwmCNonv4suy2Kl48Pxz2OO0YepTuAZxJA6vrPcHxqbeAcAvfpk9PXLRmxD/eoiTsJusxkP5h6Z00gWJiFNNSntOShaGfCtloumqFHi5HIDiipo6KvIBvSYFaK0vlcFjdk0cAkMskuGP8B98zlMP5s9C19/uC6WsDmX1oQ0tNRIifBzg1QE0RuvvfqjI3/W4MqmKllbkwj/Pl/irIaeHsTK/+bwko/jK460CAwEAAQ==",
   "packages": [
     "Http",
@@ -119,7 +119,7 @@
     }
   ],
   "changelog": {
-    "6":  [
+    "6": [
       "Refactor: URL Regexes",
       "Refactor: Clean Queries",
       "Fix: Identifiers for Channels and Contents",
