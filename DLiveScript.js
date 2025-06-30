@@ -874,7 +874,6 @@ function getLiveDetails(url) {
 
         isLive: true,
         description: `${md.livestream.content}`,
-        /** I haven't been able to fetch the live source, I'm trying to figure it out */
         video: new VideoSourceDescriptor(hlsSources)
     });
 }
@@ -1154,11 +1153,11 @@ function getLiveStreamUrl(userName) {
 function parseM3u8(content) {
     const lines = content.split('\n');
     const sources = [];
-    let hsl = {};
+    let hls = {};
 
     for (const line of lines) {
         if (line.startsWith('#EXT-X-STREAM-INF:')) {
-            hsl = line
+            hls = line
                 .replace('#EXT-X-STREAM-INF:', '')
                 .split(',')
                 .reduce((acc, pair) => {
@@ -1181,15 +1180,15 @@ function parseM3u8(content) {
         }
         else if (line.startsWith('https://')) {
             sources.push({
-                ...hsl,
+                ...hls,
                 url: line.trim(),
-                name: hsl.name || hsl.resolution || 'Default',
-                width: hsl.width,
-                height: hsl.height,
-                codecs: hsl.codecs,
-                bitrate: hsl.bandwidth
+                name: hls.name || hls.resolution || 'Default',
+                width: hls.width,
+                height: hls.height,
+                codecs: hls.codecs,
+                bitrate: hls.bandwidth
             });
-            hsl = {};
+            hls = {};
         }
     }
 
