@@ -230,7 +230,7 @@ source.searchChannels = function (query, continuationToken) {
             first: 20, // 8 is the default on DLive's website
             after: continuationToken ?? null, // "-1" is the proper default
         },
-        query: "query NavSearchResult($string: String!, $first: Int, $after: String) { search(text: $string) { users (first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id username displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } } } } }"
+        query: "query NavSearchResult($string: String!, $first: Int, $after: String) { search(text: $string) { users (first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id username displayname avatar offlineImage subSetting { backgroundImage } followers { totalCount } about panels { title body imageURL imageLinkURL } } } } }"
     }
 
     const results = callGQL(gql);
