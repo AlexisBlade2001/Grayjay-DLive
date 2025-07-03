@@ -520,10 +520,10 @@ source.getSubComments = function (comment, continuationToken) {
         const results = callGQL(gql);
 
         if (!Array.isArray(results.data?.comments?.list))
-            return new DLiveCommentPager([], false, {});
+            return new DLiveSubCommentPager([], false, {});
 
         // The results (SubComment)
-        const subComments = results.data?.comments?.list.map((subComment) => {
+        const subComments = results.data?.comments?.list.map((subComment) =>
             new PlatformComment({
                 contextUrl: comment.contextUrl,
                 author: new PlatformAuthorLink(
@@ -547,8 +547,8 @@ source.getSubComments = function (comment, continuationToken) {
                 context: {
                     permlink: subComment.permlink,
                 },
-            });
-        });
+            })
+        );
 
         const hasMore = results.data?.comments?.pageInfo?.hasNextPage ?? false; // Are there more pages?
         const context = {
@@ -570,43 +570,40 @@ source.getSubComments = function (comment, continuationToken) {
                 after: continuationToken ?? null,
             },
             query:
-                "query ClipCommentReplies($id: String!, $first: Int, $after: String) { clipCommentReplies(id: $id, first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id author { username displayname avatar followers { totalCount } } content replyTo { displayname } liked createdAt } } }",
+                "query ClipCommentReplies($id: String!, $first: Int, $after: String) { clipCommentReplies(id: $id, first: $first, after: $after) { pageInfo { endCursor hasNextPage } list { id author { username displayname avatar followers { totalCount } } content replyTo { displayname } likeCount createdAt } } }",
         };
 
         const results = callGQL(gql);
 
         if (!Array.isArray(results.data?.clipCommentReplies?.list))
-            return new DLiveCommentPager([], false, {});
+            return new DLiveSubCommentPager([], false, {});
 
         // The results (SubComment)
-        const subComments = results.data?.clipCommentReplies?.list.map(
-            (subComment) => {
-                new PlatformComment({
-                    contextUrl: comment.contextUrl,
-                    author: new PlatformAuthorLink(
-                        new PlatformID(
-                            PLATFORM,
-                            subComment.author.username,
-                            plugin.config.id
-                        ),
-                        subComment.author.displayname,
-                        `${URL_CHANNEL}/${subComment.author.displayname}`,
-                        subComment.author.avatar,
-                        subComment.author.followers.totalCount
+        const subComments = results.data?.clipCommentReplies?.list.map((subComment) =>
+            new PlatformComment({
+                contextUrl: comment.contextUrl,
+                author: new PlatformAuthorLink(
+                    new PlatformID(
+                        PLATFORM,
+                        subComment.author.username,
+                        plugin.config.id
                     ),
-                    message: subComment.content,
-                    rating: new RatingLikes(subComment.likeCount),
-                    date: parseInt(subComment.createdAt, 10) / 1000,
-                    replyCount: 0,
-                    context: {
-                        id: subComment.id,
-                    },
-                });
-            }
+                    subComment.author.displayname,
+                    `${URL_CHANNEL}/${subComment.author.displayname}`,
+                    subComment.author.avatar,
+                    subComment.author.followers.totalCount
+                ),
+                message: subComment.content,
+                rating: new RatingLikes(subComment.likeCount),
+                date: parseInt(subComment.createdAt, 10) / 1000,
+                replyCount: 0,
+                context: {
+                    id: subComment.id,
+                },
+            })
         );
 
-        const hasMore =
-            results.data?.clipCommentReplies?.pageInfo?.hasNextPage ?? false; // Are there more pages?
+        const hasMore = results.data?.clipCommentReplies?.pageInfo?.hasNextPage ?? false; // Are there more pages?
         const context = {
             parentComment: comment,
             id: comment.context?.id,

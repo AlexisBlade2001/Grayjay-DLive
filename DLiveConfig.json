@@ -120,6 +120,8 @@
   ],
   "changelog": {
     "6": [
+      "Hotfix: Subcomments have been fixed",
+      "",
       "Refactor: URL Regexes",
       "Refactor: Clean Queries",
       "Fix: Identifiers for Channels and Contents",
