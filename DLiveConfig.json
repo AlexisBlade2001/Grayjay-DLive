@@ -10,7 +10,7 @@
   "version": 6,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
-  "scriptSignature": "G2RNAmDtIVu2Jq8y2OvsxHNm6fExZlD0H9U2NB1Gf8JmZCOVdx8cWBYsIcigg3uqFx3xEkqr38E3pcQXAP/bnv8Um4KghCI7GE1UuZOdgbydHOkE4j9lTuKHGV1NXyeT4AvIZeWG458G22bkK16TKnk/yzkZv2NH6Cyw0uAQxpr9WR0Iud4cYba/YG74Fb2wCM1B7UPC2C65fZ6CDfiAAPGtC8NEbdGpCKPjL2MQ5tS+twbIYS8lNFe1o6ME2Ok8hV/Mz76F2/Mj4/cAGFsfCuo3alQs448olNDXuKx1lCHvCqVmG0RfgsgLV4HADTJq9uXq5a+ovjZQv6S2gfPip3tyh4SPdUBIp0etcfW5j1q5bdqGEs5PdbyDgO48wPNW6ZffJAbuNL0fudCwsQ7lbADtA57hOX0KxHE/wRe4uFWFwt9ktwFdxHZFC1qlY1EGOl8WQVUjsngc9gCk8NuSpk3UoJse9v8RL3oL6HQiFwUp8oDI+8wYq3vOz9Z2MWNDxDzMS7L+HOkGtR0auuaY04LmSs3sq05f8OFNtwNKjqZ3GHyDble1Db+oSaAHKQJ0Cku/LtWvSk/jFEbJsY72BpdcskmRhYqaeMYdCKWZXR0xz0fq7G2eFkgsIV6PNZGT7bjrzUu2ijG39A78eJdlhPP2iSPtwh5eCcSHokpPI/s=",
+  "scriptSignature": "Xey5+9/7+Yb0g1FAXL+WufQR1VkCLlf0LOZ5PLhIV9cZLaiYBx7bPMqbJgDawpJ/1eAlfjOB2j9KmGe8LI6/SkNP5bAfwUZL9kMdr4BE7WCurUKHzXnGq+CRmuSwUYiEOh1rRgnoxaikemiTnHxT0EppdwVZnMRXgTv9VS8Avd/bf8/SHNM3LNdV6NjRL5cktvnsTS3MRiGSj9/17F8juPNfquVP/it9hICKEiGxlwmxWg5JJ6RnQodLHX7WeqyR8H2PFNhZvgoOY7q9tEvH8ZGhHDR9kNX2QNxu+oxSu9ehZ1mOvvPOu6NIeOndSf1GkM1ybi3wpiuaU2LKNFwmNBc9O3j8o8xXVZFahLssvDgxKMqEbVcTTRYrvWATxBSxbbr0viiAdJ8kE40J5Zoztwvkdt/LeWpA88Y76Lv+Fd2z4aeD1xYXcOglnAdqefwbRaL3tKQWouVOYwGrn5KC2xC+f4UP/0xbWkmB7Hm4DuGgf36kBx7+xIyo692ICBL0tz2KodaTOWouJ0zZflYCOCSWvxSvhyap1rMS006VTNHfYwevz7u+QBza9hTriDG7Y3GRVPnYcffc8ilfCXUmw9xGRrJaU5K40MMTd/nJvSP2tvsloQaWEKgJ2RGFh8XRYl3OPn+VACjybFhLQHVu+YZ7o8wXPGDZ6O9OZcpFswg=",
   "scriptPublicKey": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAr63Yf0gjJG8rV9IhtUQgxzryQCtacKfdaErLBC4sOhcnHEqWYJoAHGytGggRSyuGZoJFX2Ovd/8bH0YRT1e1oWMgSZFHQ0k3UE94G2Jw1jmmFvZEaMVxDW7RLkkvqYlXBNDLdkxfbyZepKV5mM4Fd5kbueAdfWdhsl5FhlqHCH10kudewcFq4WBTwQW1chsdkI0Iqrgwqzs5vH5cpphxzXUb+V6rtOUystpFwsEXb6m1Kzl0Uy/9AWTdT9JJJ7H88ycO6d6xX9UUjOXCwMWHxPcZ6UVPN2Plr8UBTJvF0uaYkDhNn0rzEe7NiJ8gUmrT0UJB2E5cYv4I4eTGp6RTwKe7UVCGEo8S7vQ0yPjxk8+dta+V6ECvg7VV1Ic00dfYqPsWPsZJ/xkJLeXIeXhjDNLm0pebr6W6bXkVPvS9PcYMoId+YpghojnPnzo/vmAIo4aS90G1zwmCNonv4suy2Kl48Pxz2OO0YepTuAZxJA6vrPcHxqbeAcAvfpk9PXLRmxD/eoiTsJusxkP5h6Z00gWJiFNNSntOShaGfCtloumqFHi5HIDiipo6KvIBvSYFaK0vlcFjdk0cAkMskuGP8B98zlMP5s9C19/uC6WsDmX1oQ0tNRIifBzg1QE0RuvvfqjI3/W4MqmKllbkwj/Pl/irIaeHsTK/+bwko/jK460CAwEAAQ==",
   "packages": [
     "Http",
@@ -104,21 +104,24 @@
       ]
     },
     {
-      "variable": "showMatureTag",
-      "name": "Show Mature Tagged Content",
-      "description": "Allows you to search and view Mature Tagged content",
+      "variable": "allowMatureTag",
+      "name": "Allow Mature Content",
+      "description": "Allow searching and watching of mature content",
       "type": "Boolean",
-      "default": "false"
+      "default": "true"
     },
     {
-      "variable": "showXTag",
-      "name": "Show X-Tagged Content",
-      "description": "Allows you to search and view X-Tagged content",
+      "variable": "allowXTag",
+      "name": "Allow X-Tagged Content",
+      "description": "Allow searching and watching of mature content",
       "type": "Boolean",
       "default": "false"
     }
   ],
   "changelog": {
+    "7": [
+      "Hotfix: Subcomments have been fixed"
+    ],
     "6": [
       "Refactor: URL Regexes",
       "Refactor: Clean Queries",
