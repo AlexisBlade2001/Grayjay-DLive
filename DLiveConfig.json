@@ -4,10 +4,10 @@
   "author": "AlexisBlade2001",
   "authorUrl": "https://github.com/AlexisBlade2001",
   "platformUrl": "https://dlive.tv",
-  "sourceUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive/raw/refs/heads/main/DLiveConfig.json",
+  "sourceUrl": "https://alexisblade2001.github.io/Grayjay-Plugins/DLive/DLiveConfig.json",
   "repositoryUrl": "https://github.com/AlexisBlade2001/Grayjay-DLive",
   "scriptUrl": "./DLiveScript.js",
-  "version": 6,
+  "version": 7,
   "iconUrl": "./DLiveIcon.png",
   "id": "06b0c2b1-67b6-4cb3-bf8f-8bf191dac0f3",
   "scriptSignature": "Xey5+9/7+Yb0g1FAXL+WufQR1VkCLlf0LOZ5PLhIV9cZLaiYBx7bPMqbJgDawpJ/1eAlfjOB2j9KmGe8LI6/SkNP5bAfwUZL9kMdr4BE7WCurUKHzXnGq+CRmuSwUYiEOh1rRgnoxaikemiTnHxT0EppdwVZnMRXgTv9VS8Avd/bf8/SHNM3LNdV6NjRL5cktvnsTS3MRiGSj9/17F8juPNfquVP/it9hICKEiGxlwmxWg5JJ6RnQodLHX7WeqyR8H2PFNhZvgoOY7q9tEvH8ZGhHDR9kNX2QNxu+oxSu9ehZ1mOvvPOu6NIeOndSf1GkM1ybi3wpiuaU2LKNFwmNBc9O3j8o8xXVZFahLssvDgxKMqEbVcTTRYrvWATxBSxbbr0viiAdJ8kE40J5Zoztwvkdt/LeWpA88Y76Lv+Fd2z4aeD1xYXcOglnAdqefwbRaL3tKQWouVOYwGrn5KC2xC+f4UP/0xbWkmB7Hm4DuGgf36kBx7+xIyo692ICBL0tz2KodaTOWouJ0zZflYCOCSWvxSvhyap1rMS006VTNHfYwevz7u+QBza9hTriDG7Y3GRVPnYcffc8ilfCXUmw9xGRrJaU5K40MMTd/nJvSP2tvsloQaWEKgJ2RGFh8XRYl3OPn+VACjybFhLQHVu+YZ7o8wXPGDZ6O9OZcpFswg=",
@@ -113,7 +113,7 @@
     {
       "variable": "allowXTag",
       "name": "Allow X-Tagged Content",
-      "description": "Allow searching and watching of mature content",
+      "description": "Allow searching and watching of x-tagged content",
       "type": "Boolean",
       "default": "false"
     }
