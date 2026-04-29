@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This plugin will most likely stop working, since DLive has been shutting down after April 27th, 2026. 
+
 # DLive Plugin for Grayjay
 So... this is a random attempt at making a plugin to add [DLive](https://dlive.tv/) as a source for [Grayjay](https://grayjay.app/)
 I don't have any kind of guide for this since I'm new on this kind of work, and the code is possibly a complete mess for other people to read so I'm sorry for that
